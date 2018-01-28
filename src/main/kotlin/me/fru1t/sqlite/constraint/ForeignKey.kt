@@ -11,7 +11,7 @@ import kotlin.reflect.KProperty1
  * tables and columns referenced. See [getConstraintName] for more detail about name generation. See
  * [https://sqlite.org/foreignkeys.html] for official SQLite documentation of foreign keys.
  *
- * Use [ForeignKey#of][of] to create instances of this class.
+ * Use [ForeignKey.of] to create instances of this class.
  *
  * Example usage:
  * ```
