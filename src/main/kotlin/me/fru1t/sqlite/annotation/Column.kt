@@ -9,7 +9,9 @@ import me.fru1t.sqlite.constraint.PrimaryKey
  * Example usage:
  * ```
  * data class ExampleTable(
- *     @Column(INTEGER) val id: Int
+ *     @Column(INTEGER) val id: Int,
+ *     @Column(TEXT) val username: String,
+ *     @Column(dataType = TEXT, nullable = true) val content: String
  * ) : extends Table<ExampleTable>
  * ```
  *
