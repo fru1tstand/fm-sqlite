@@ -6,7 +6,7 @@ import java.util.Arrays
 import kotlin.reflect.KProperty1
 
 /**
- * Declare's a [Unique] constraint on a [Table]. Use [Unique.of] to create instances of this class.
+ * Declares a [Unique] constraint on a [Table]. Use [Unique.of] to create instances of this class.
  *
  * Example usage:
  * ```

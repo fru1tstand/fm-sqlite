@@ -22,6 +22,8 @@ import kotlin.reflect.jvm.javaField
  * Constraint information
  *  + [Primary Key][me.fru1t.sqlite.constraint.PrimaryKey]
  *  + [Foreign Keys][me.fru1t.sqlite.constraint.ForeignKey]
+ *  + [Check][me.fru1t.sqlite.constraint.Check]
+ *  + [Unique][me.fru1t.sqlite.constraint.Unique]
  */
 abstract class Table<T : Table<T>> {
   companion object {
