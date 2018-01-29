@@ -6,7 +6,12 @@ import java.util.Arrays
 import kotlin.reflect.KProperty1
 
 /**
- * Declares a [Unique] constraint on a [Table]. Use [Unique.of] to create instances of this class.
+ * Declares a [`UNIQUE`][Unique] constraint on a [Table]. [`UNIQUE`][Unique] constraints are
+ * declared as fields within the companion object of a [Table] implementation. The name of the field
+ * isn't used for anything, but it'd be nice to name them following standard convention:
+ * `uq_<columns in this unique constraint>`.
+ *
+ * Use [Unique.of] to create instances of this class.
  *
  * Example usage:
  * ```
@@ -21,7 +26,8 @@ import kotlin.reflect.KProperty1
  * }
  * ```
  *
- * Documentation from [https://www.sqlite.org/lang_createtable.html#constraints]
+ *
+ * Documentation from [https://www.sqlite.org/lang_createtable.html#constraints]:
  *
  * A [`UNIQUE`][Unique] constraint is similar to a [`PRIMARY KEY`][PrimaryKey] constraint, except
  * that a single table may have any number of [`UNIQUE`][Unique] constraints. For each

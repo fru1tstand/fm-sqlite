@@ -6,8 +6,12 @@ import java.util.Arrays
 import kotlin.reflect.KProperty1
 
 /**
- * Declares a [Table]'s [PrimaryKey] columns. Only a single primary key group may exist for a single
- * table. Use [PrimaryKey.of] to create instances of this class.
+ * Declares a [Table]'s [`PRIMARY KEY`][PrimaryKey] columns. Only a single primary key group may
+ * exist for a single table. A [`PRIMARY KEY`][PrimaryKey] constraint is declared as a field
+ * within the companion object of a [Table] implementation. The name of the field isn't used for
+ * anything, but it'd be nice to name them something meaningful like `PRIMARY_KEY`.
+ *
+ * Use [PrimaryKey.of] to create instances of this class.
  *
  * Example usage:
  * ```
@@ -21,7 +25,8 @@ import kotlin.reflect.KProperty1
  * }
  * ```
  *
- * Documentation from [https://www.sqlite.org/lang_createtable.html#constraints]
+ *
+ * Documentation from [https://www.sqlite.org/lang_createtable.html#constraints]:
  *
  * Each table in SQLite may have at most one [`PRIMARY KEY`][PrimaryKey]. If the keywords
  * [`PRIMARY KEY`][PrimaryKey] are added to a column definition, then the primary key for the table

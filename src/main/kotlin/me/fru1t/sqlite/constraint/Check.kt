@@ -4,7 +4,10 @@ import me.fru1t.sqlite.annotation.DataType
 import me.fru1t.sqlite.Table
 
 /**
- * Declares a [`CHECK`][Check] constraint on a [Table].
+ * Declares a [`CHECK`][Check] constraint on a [Table]. [`CHECK`][Check] constraints are declared
+ * as fields within the companion object of a [Table] implementation. The name of the field isn't
+ * used for anything, but it'd be nice to name them following standard convention:
+ * `CK_<something meaningful>`
  *
  * Example usage:
  * ```
@@ -18,7 +21,8 @@ import me.fru1t.sqlite.Table
  * }
  * ```
  *
- * Documentation from [https://www.sqlite.org/lang_createtable.html#constraints]
+ *
+ * Documentation from [https://www.sqlite.org/lang_createtable.html#constraints]:
  *
  * A [`CHECK`][Check] constraint may be attached to a column definition or specified as a table
  * constraint. In practice it makes no difference. Each time a new row is inserted into the table

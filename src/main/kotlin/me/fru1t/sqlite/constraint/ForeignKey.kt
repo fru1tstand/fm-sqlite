@@ -7,10 +7,11 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 /**
- * Represents a single [ForeignKey] constraint within a database [Table]. The name of the field this
- * [ForeignKey] is stored in is ignored as the name of the constraint is generated from the
- * tables and columns referenced. See [getConstraintName] for more detail about name generation. See
- * [https://sqlite.org/foreignkeys.html] for official SQLite documentation of foreign keys.
+ * Represents a single [`FOREIGN KEY`][ForeignKey] constraint within a [Table].
+ * [`FOREIGN KEY`][ForeignKey]s are declared as a fields within the companion object of a [Table]
+ * implementation. The name of the field isn't used for anything, but it'd be nice to name them
+ * following standard convention:
+ * `FK_<local table name>_<foreign table name>_<foreign column name>`.
  *
  * Use [ForeignKey.of] to create instances of this class.
  *
@@ -24,6 +25,9 @@ import kotlin.reflect.KProperty1
  *   }
  * }
  * ```
+ *
+ *
+ * See [https://sqlite.org/foreignkeys.html] for official SQLite documentation of foreign keys.
  */
 data class ForeignKey<T : Table<T>, O : Table<O>>(
     val localColumn: KProperty1<T, *>,
