@@ -29,8 +29,7 @@ data class ForeignKey<T : Table<T>, O : Table<O>>(
     val localColumn: KProperty1<T, *>,
     val foreignColumn: KProperty1<O, *>,
     val onUpdate: OnForeignKeyConflict,
-    val onDelete: OnForeignKeyConflict
-) {
+    val onDelete: OnForeignKeyConflict) {
   /**
    * Returns the SQL clause that corresponds to the settings this [ForeignKey] represents to be used
    * in a `CREATE TABLE` statement.
