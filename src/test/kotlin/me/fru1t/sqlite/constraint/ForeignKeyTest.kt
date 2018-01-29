@@ -6,6 +6,7 @@ import me.fru1t.sqlite.Table
 import me.fru1t.sqlite.annotation.Column
 import me.fru1t.sqlite.annotation.DataType.INTEGER
 import me.fru1t.sqlite.annotation.DataType.TEXT
+import me.fru1t.sqlite.constraint.resolutionstrategy.OnForeignKeyConflict
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import kotlin.reflect.KProperty1
@@ -16,12 +17,12 @@ class ForeignKeyTest {
     val foreignKey = ForeignKey.of(
         ValidChildTable::parentId,
         ValidParentTable::id,
-        OnModificationAction.SET_NULL,
-        OnModificationAction.CASCADE)
+        OnForeignKeyConflict.SET_NULL,
+        OnForeignKeyConflict.CASCADE)
     assertThat(foreignKey.localColumn).isEqualTo(ValidChildTable::parentId)
     assertThat(foreignKey.foreignColumn).isEqualTo(ValidParentTable::id)
-    assertThat(foreignKey.onUpdate).isEqualTo(OnModificationAction.SET_NULL)
-    assertThat(foreignKey.onDelete).isEqualTo(OnModificationAction.CASCADE)
+    assertThat(foreignKey.onUpdate).isEqualTo(OnForeignKeyConflict.SET_NULL)
+    assertThat(foreignKey.onDelete).isEqualTo(OnForeignKeyConflict.CASCADE)
   }
 
   @Test
@@ -107,8 +108,8 @@ class ForeignKeyTest {
       return ForeignKey(
           localColumn,
           foreignColumn,
-          OnModificationAction.NO_ACTION,
-          OnModificationAction.NO_ACTION)
+          OnForeignKeyConflict.NO_ACTION,
+          OnForeignKeyConflict.NO_ACTION)
     }
   }
 }
