@@ -1,0 +1,6 @@
+dependencies {
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlin_version
+    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.21.0.1'
+    compile project(':libs/fm-slik-kotlin')
+    compile project(':annotations')
+}

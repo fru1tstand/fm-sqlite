@@ -1,7 +1,5 @@
 package me.fru1t.sqlite.annotation
 
-import me.fru1t.sqlite.constraint.PrimaryKey
-
 /**
  * Denotes a column within a table. This annotation may only be attached to a data class that
  * extends the [me.fru1t.sqlite.Table] class.
@@ -37,7 +35,7 @@ annotation class Column(
     /**
      * Please read [the documentation][http://www.sqlite.org/autoinc.html] before using this field.
      * TL;DR: if you want an auto incremented `id` field, declare it a column as an integer and set
-     * it as the sole [PrimaryKey] in the table. SQLite will magically take care of it.
+     * it as the sole `PRIMARY KEY` in the table. SQLite will magically take care of it.
      */
     val autoIncrement: Boolean = false)
 
