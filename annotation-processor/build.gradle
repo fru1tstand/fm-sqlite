@@ -1,1 +1,3 @@
-// Nothing here :)
+dependencies {
+    compile project(':annotations')
+}
