@@ -1,49 +1,72 @@
 package me.fru1t.sqlite.constraint
 
-import me.fru1t.sqlite.LocalSqliteException
+import me.fru1t.sqlite.Constraint
 import me.fru1t.sqlite.Table
 import me.fru1t.sqlite.constraint.resolutionstrategy.OnForeignKeyConflict
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 /**
- * Represents a single [`FOREIGN KEY`][ForeignKey] constraint within a [Table].
- * [`FOREIGN KEY`][ForeignKey]s are declared as a fields within the companion object of a [Table]
- * implementation. The name of the field isn't used for anything, but it'd be nice to name them
- * following standard convention:
- * `FK_<local table name>_<foreign table name>_<foreign column name>`.
+ * Creates a [ForeignKey] reference from the calling column to the [referenceColumn]. This method
+ * defaults the [ForeignKey.onUpdate] and [ForeignKey.onDelete] [OnForeignKeyConflict] values to the
+ * Sqlite default of [OnForeignKeyConflict.NO_ACTION]. See also [ForeignKey.onUpdate] and
+ * [ForeignKey.onDelete] to specify on foreign key conflict values.
  *
- * Use [ForeignKey.of] to create instances of this class.
+ * See [ForeignKey] for example usage.
+ */
+infix fun <L : Table<L>, F : Table<F>, T : Any> KProperty1<L, T>.references(
+    referenceColumn: KProperty1<F, T>): ForeignKey<L, F, T> {
+  return ForeignKey(
+      this,
+      referenceColumn,
+      OnForeignKeyConflict.NO_ACTION,
+      OnForeignKeyConflict.NO_ACTION)
+}
+
+/**
+ * Represents a single [`FOREIGN KEY`][ForeignKey] constraint within a [Table]. Both child and
+ * parent fields must be the same type [T]. Instances of this class are traditionally created with
+ * [references]. For clarity, the [childColumn] is the local column, or the table that holds the
+ * constraint. The [parentColumn] is the foreign column, or the table that is referenced.
  *
  * Example usage:
  * ```
- * data class Foo(@Column(INTEGER) val id: Int) : Table<Foo>()
- * data class Bar(@Column(INTEGER) val id: Int, @Column(INTEGER) val fooId: Int) : Table<Bar>() {
- *   companion object {
- *     // Defines a foreign key constraint between Bar's fooId to Foo's id
- *     private val FK_FOO_ID = ForeignKey.of(Bar::fooId, Foo::id)
- *   }
+ * // Define the tables that will be used
+ * data class ExampleUser(val id: Int) : Table<ExampleUser>()
+ * data class ExamplePost(val id: Int, val exampleUserId: Int) : Table<ExamplePost>()
+ *
+ * // Example code block
+ * fun main(args: Array<String>) {
+ *   // One can use the inline variant of this method as such:
+ *   val foreignKey =
+ *     ExamplePost::exampleUserId references ExampleUser::id onUpdate RESTRICT onDelete RESTRICT
+ *
+ *   // Or more traditionally
+ *   val foreignKey =
+ *     ExamplePost::exampleUserId.references(ExampleUser::id).onUpdate(RESTRICT).onDelete(RESTRICT)
  * }
  * ```
  *
- *
  * See [https://sqlite.org/foreignkeys.html] for official SQLite documentation of foreign keys.
  */
-data class ForeignKey<T : Table<T>, O : Table<O>>(
-    val localColumn: KProperty1<T, *>,
-    val foreignColumn: KProperty1<O, *>,
+data class ForeignKey<L : Table<L>, F : Table<F>, out T : Any>(
+    val childColumn: KProperty1<L, T>,
+    val parentColumn: KProperty1<F, T>,
     val onUpdate: OnForeignKeyConflict,
-    val onDelete: OnForeignKeyConflict) {
-  /**
-   * Returns the SQL clause that corresponds to the settings this [ForeignKey] represents to be used
-   * in a `CREATE TABLE` statement.
-   */
-  fun getConstraintClause(): String {
+    val onDelete: OnForeignKeyConflict) : Constraint<L> {
+
+  /**  An infix alias for this data class's [copy] method specifying an [onUpdate]. */
+  infix fun onUpdate(onUpdate: OnForeignKeyConflict) = copy(onUpdate = onUpdate)
+
+  /** An infix alis for this data class's [copy] method specifying an [onDelete]. */
+  infix fun onDelete(onDelete: OnForeignKeyConflict) = copy(onDelete = onDelete)
+
+  override fun getConstraintSqlClause(): String {
     return SQL_CLAUSE.format(
         getConstraintName(),
-        Table.getColumnName(localColumn),
+        Table.getColumnName(childColumn),
         Table.getTableName(getForeignTable()),
-        Table.getColumnName(foreignColumn),
+        Table.getColumnName(parentColumn),
         onUpdate.getOnUpdateClause(),
         onDelete.getOnDeleteClause())
   }
@@ -56,65 +79,22 @@ data class ForeignKey<T : Table<T>, O : Table<O>>(
     return CONSTRAINT_NAME.format(
         Table.getTableName(getLocalTable()),
         Table.getTableName(getForeignTable()),
-        Table.getColumnName(foreignColumn))
-  }
-
-  /**
-   * Verifies that this [ForeignKey] is possible. Throws an exception on rule violation. Returns
-   * `this` for method chaining.
-   * */
-  fun validate(): ForeignKey<T, O> {
-    if (localColumn.returnType != foreignColumn.returnType) {
-      throw LocalSqliteException(
-          "Invalid foreign key reference.\n\n" +
-              "Local column type must match foreign column type.\n" +
-              "\t\tFound <${localColumn.returnType}> in <${getLocalTable().qualifiedName}" +
-              "#${localColumn.name}>\n" +
-              "\t\tAnd   <${foreignColumn.returnType}> in <${getForeignTable().qualifiedName}" +
-              "#${foreignColumn.name}>")
-    }
-
-    val localColumnAnnotation = Table.getColumnAnnotation(localColumn)
-    val foreignColumnAnnotation = Table.getColumnAnnotation(foreignColumn)
-
-    if (localColumnAnnotation.dataType != foreignColumnAnnotation.dataType) {
-      throw LocalSqliteException(
-          "Invalid foreign key reference.\n\n" +
-              "Local column annotation type must match foreign column annotation type.\n" +
-              "\t\tFound <${localColumnAnnotation.dataType}> in <${getLocalTable().qualifiedName}" +
-              "#${localColumn.name}>\n" +
-              "\t\tAnd   <${foreignColumnAnnotation.dataType}> in " +
-              "<${getForeignTable().qualifiedName}#${foreignColumn.name}>")
-    }
-
-    return this
+        Table.getColumnName(parentColumn))
   }
 
   /** Returns the [KClass] of the local (referent) table. */
-  fun getLocalTable(): KClass<T> {
-    return Table.getTableFromColumn(localColumn)
+  fun getLocalTable(): KClass<L> {
+    return Table.getTableFromColumn(childColumn)
   }
 
   /** Returns the [KClass] of the foreign (referenced) table. */
-  fun getForeignTable(): KClass<O> {
-    return Table.getTableFromColumn(foreignColumn)
+  fun getForeignTable(): KClass<F> {
+    return Table.getTableFromColumn(parentColumn)
   }
 
   companion object {
     private const val CONSTRAINT_NAME = "fk_%s_%s_%s"
     private const val SQL_CLAUSE =
       "CONSTRAINT `%s` FOREIGN KEY (`%s`) REFERENCES `%s`(`%s`) %s %s"
-
-    /**
-     * Creates a [ForeignKey] from [localColumn] to [foreignColumn] optionally specifying the
-     * [onUpdate] and [onDelete] behavior.
-     */
-    fun <T : Table<T>, O : Table<O>> of(
-        localColumn: KProperty1<T, *>,
-        foreignColumn: KProperty1<O, *>,
-        onUpdate: OnForeignKeyConflict = OnForeignKeyConflict.NO_ACTION,
-        onDelete: OnForeignKeyConflict = OnForeignKeyConflict.NO_ACTION): ForeignKey<T, O> {
-      return ForeignKey(localColumn, foreignColumn, onUpdate, onDelete).validate()
-    }
   }
 }
