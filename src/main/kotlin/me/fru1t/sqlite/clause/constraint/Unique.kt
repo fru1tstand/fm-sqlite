@@ -1,7 +1,7 @@
-package me.fru1t.sqlite.constraint
+package me.fru1t.sqlite.clause.constraint
 
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.constraint.resolutionstrategy.OnConflict
+import me.fru1t.sqlite.clause.constraint.resolutionstrategy.OnConflict
 import java.util.Arrays
 import kotlin.reflect.KProperty1
 

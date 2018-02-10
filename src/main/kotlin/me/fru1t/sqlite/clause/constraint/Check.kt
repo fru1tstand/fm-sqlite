@@ -1,4 +1,4 @@
-package me.fru1t.sqlite.constraint
+package me.fru1t.sqlite.clause.constraint
 
 import me.fru1t.sqlite.annotation.DataType
 

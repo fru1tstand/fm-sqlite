@@ -1,6 +1,7 @@
 package me.fru1t.sqlite
 
 import com.google.common.truth.Truth.assertThat
+import me.fru1t.sqlite.clause.Constraint
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -36,7 +37,7 @@ class TableDefinitionTest {
   fun builder_constraint() {
     val exampleConstraint =
       object : Constraint<ExampleTable> {
-      override fun getConstraintSqlClause(): String = ""
+      override fun getClause(): String = ""
     }
     val result = builder.constraint(exampleConstraint).build()
     assertThat(result.constraints).containsExactly(exampleConstraint)

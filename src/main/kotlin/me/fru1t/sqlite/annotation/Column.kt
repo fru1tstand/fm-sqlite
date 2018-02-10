@@ -1,6 +1,6 @@
 package me.fru1t.sqlite.annotation
 
-import me.fru1t.sqlite.constraint.PrimaryKey
+import me.fru1t.sqlite.clause.constraint.PrimaryKey
 
 /**
  * Denotes a column within a table. This annotation may only be attached to a data class that

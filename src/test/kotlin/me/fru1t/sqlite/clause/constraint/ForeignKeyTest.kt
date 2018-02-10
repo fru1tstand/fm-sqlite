@@ -1,8 +1,8 @@
-package me.fru1t.sqlite.constraint
+package me.fru1t.sqlite.clause.constraint
 
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.constraint.resolutionstrategy.OnForeignKeyConflict
+import me.fru1t.sqlite.clause.constraint.resolutionstrategy.OnForeignKeyConflict
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -42,7 +42,7 @@ class ForeignKeyTest {
 
   @Test
   fun getConstraintClause() {
-    assertThat(foreignKey.getConstraintSqlClause())
+    assertThat(foreignKey.getClause())
         .isEqualTo("CONSTRAINT `fk_child_table_parent_table_id` FOREIGN KEY " +
             "(`parent_table_id`) REFERENCES `parent_table`(`id`) " +
             "ON UPDATE NO ACTION ON DELETE NO ACTION")

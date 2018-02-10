@@ -1,8 +1,8 @@
-package me.fru1t.sqlite.constraint
+package me.fru1t.sqlite.clause.constraint
 
-import me.fru1t.sqlite.Constraint
+import me.fru1t.sqlite.clause.Constraint
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.constraint.resolutionstrategy.OnForeignKeyConflict
+import me.fru1t.sqlite.clause.constraint.resolutionstrategy.OnForeignKeyConflict
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
@@ -61,7 +61,7 @@ data class ForeignKey<L : TableColumns<L>, F : TableColumns<F>, out T : Any>(
   /** An infix alis for this data class's [copy] method specifying an [onDelete]. */
   infix fun onDelete(onDelete: OnForeignKeyConflict) = copy(onDelete = onDelete)
 
-  override fun getConstraintSqlClause(): String {
+  override fun getClause(): String {
     return SQL_CLAUSE.format(
         getConstraintName(),
         TableColumns.getColumnName(childColumn),

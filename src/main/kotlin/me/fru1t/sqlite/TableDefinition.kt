@@ -1,5 +1,6 @@
 package me.fru1t.sqlite
 
+import me.fru1t.sqlite.clause.Constraint
 import kotlin.reflect.KClass
 
 /**
