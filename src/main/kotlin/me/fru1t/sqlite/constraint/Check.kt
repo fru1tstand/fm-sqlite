@@ -1,7 +1,6 @@
 package me.fru1t.sqlite.constraint
 
 import me.fru1t.sqlite.annotation.DataType
-import me.fru1t.sqlite.Table
 
 /**
  * Declares a [`CHECK`][Check] constraint on a [Table]. [`CHECK`][Check] constraints are declared
@@ -14,7 +13,7 @@ import me.fru1t.sqlite.Table
  * data class ExampleTable(
  *     @Column(TEXT) val username: String,
  *     @Column(TEXT) val email: String
- * ) extends Table<ExampleTable>() {
+ * ) extends TableColumns<ExampleTable>() {
  *   companion object {
  *     val CK_HAS_EITHER_USERNAME_OR_EMAIL = Check("`username` IS NOT NULL OR `email` IS NOT NULL")
  *   }

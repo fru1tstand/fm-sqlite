@@ -6,29 +6,29 @@ import me.fru1t.sqlite.annotation.DataType.INTEGER
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 
-class TableTest {
+class TableColumnsTest {
   @Test
   fun getTableName() {
-    assertThat(Table.getTableName(LongTableNameClassForUseInTesting::class))
+    assertThat(TableColumns.getTableName(LongTableNameClassForUseInTesting::class))
         .isEqualTo("long_table_name_class_for_use_in_testing")
   }
 
   @Test
   fun getColumnName() {
-    assertThat(Table.getColumnName(LongColumnClass::thisHasAReallyLongColumnName))
+    assertThat(TableColumns.getColumnName(LongColumnClass::thisHasAReallyLongColumnName))
         .isEqualTo("this_has_a_really_long_column_name")
   }
 
   @Test
   fun getColumnAnnotation() {
-    val resultAnnotation = Table.getColumnAnnotation(ValidTable::id)
+    val resultAnnotation = TableColumns.getColumnAnnotation(ValidTable::id)
     assertThat(resultAnnotation.dataType).isEqualTo(INTEGER)
   }
 
   @Test
   fun getColumnAnnotation_noAnnotation() {
     try {
-      Table.getColumnAnnotation(TableWithoutColumnAnnotation::id)
+      TableColumns.getColumnAnnotation(TableWithoutColumnAnnotation::id)
       fail<Unit>(
           "#getColumnAnnotation should have thrown a LocalSqliteException about not having a " +
               "column annotation")
@@ -39,15 +39,15 @@ class TableTest {
 
   @Test
   fun getTableFromColumn() {
-    val resultTable = Table.getTableFromColumn(ValidTable::id)
+    val resultTable = TableColumns.getTableFromColumn(ValidTable::id)
     assertThat(resultTable).isEqualTo(ValidTable::class)
   }
 }
 
 private data class LongTableNameClassForUseInTesting(val id: Int) :
-    Table<LongTableNameClassForUseInTesting>()
+    TableColumns<LongTableNameClassForUseInTesting>()
 private data class LongColumnClass(val thisHasAReallyLongColumnName: String) :
-    Table<LongColumnClass>()
+    TableColumns<LongColumnClass>()
 
-private data class ValidTable(@Column(INTEGER) val id: Int) : Table<ValidTable>()
-private data class TableWithoutColumnAnnotation(val id: Int): Table<TableWithoutColumnAnnotation>()
+private data class ValidTable(@Column(INTEGER) val id: Int) : TableColumns<ValidTable>()
+private data class TableWithoutColumnAnnotation(val id: Int): TableColumns<TableWithoutColumnAnnotation>()

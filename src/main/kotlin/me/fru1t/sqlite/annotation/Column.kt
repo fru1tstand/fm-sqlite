@@ -12,7 +12,7 @@ import me.fru1t.sqlite.constraint.PrimaryKey
  *     @Column(INTEGER) val id: Int,
  *     @Column(TEXT) val username: String,
  *     @Column(dataType = TEXT, nullable = true) val content: String
- * ) : extends Table<ExampleTable>
+ * ) : extends TableColumns<ExampleTable>
  * ```
  *
  * @param dataType The [DataType] (aka affinity) this column will be stored as on the database

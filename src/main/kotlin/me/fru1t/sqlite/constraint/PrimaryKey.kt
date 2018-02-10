@@ -1,7 +1,7 @@
 package me.fru1t.sqlite.constraint
 
 import me.fru1t.sqlite.annotation.DataType
-import me.fru1t.sqlite.Table
+import me.fru1t.sqlite.TableColumns
 import java.util.Arrays
 import kotlin.reflect.KProperty1
 
@@ -18,7 +18,7 @@ import kotlin.reflect.KProperty1
  * data class ExampleTable(
  *     @Column(TEXT) val username: String,
  *     @Column(TEXT) val email: String
- * ) extends Table<ExampleTable>() {
+ * ) extends TableColumns<ExampleTable>() {
  *   companion object {
  *     val PRIMARY_KEY = PrimaryKey.of(ExampleTable::username, ExampleTable::email)
  *   }
@@ -58,7 +58,7 @@ import kotlin.reflect.KProperty1
  * decided to merely document the fact that SQLite allowing `NULL`s in most
  * [`PRIMARY KEY`][PrimaryKey] columns.
  */
-data class PrimaryKey<T : Table<T>>(val columns: Array<out KProperty1<T, *>>) {
+data class PrimaryKey<T : TableColumns<T>>(val columns: Array<out KProperty1<T, *>>) {
   /**
    * Returns the SQL clause to create this [PrimaryKey] constraint from a `CREATE TABLE` statement.
    * Returns an empty string if no columns are specified for the [PrimaryKey].
@@ -73,7 +73,7 @@ data class PrimaryKey<T : Table<T>>(val columns: Array<out KProperty1<T, *>>) {
       if (index > 0) {
         primaryKeyColumnText.append(',')
       }
-      primaryKeyColumnText.append('`').append(Table.getColumnName(column)).append('`')
+      primaryKeyColumnText.append('`').append(TableColumns.getColumnName(column)).append('`')
     }}
     return SQL_CLAUSE.format(primaryKeyColumnText.toString())
   }
@@ -95,7 +95,7 @@ data class PrimaryKey<T : Table<T>>(val columns: Array<out KProperty1<T, *>>) {
     private const val SQL_CLAUSE = "PRIMARY KEY(%s)"
 
     /** Creates a [PrimaryKey] on [Table] ([T]) consisting of [columns]. */
-    fun <T : Table<T>> of(vararg columns: KProperty1<T, *>): PrimaryKey<T> {
+    fun <T : TableColumns<T>> of(vararg columns: KProperty1<T, *>): PrimaryKey<T> {
       return PrimaryKey(columns)
     }
   }

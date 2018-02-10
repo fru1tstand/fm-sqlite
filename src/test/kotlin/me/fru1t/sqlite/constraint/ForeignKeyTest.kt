@@ -1,7 +1,7 @@
 package me.fru1t.sqlite.constraint
 
 import com.google.common.truth.Truth.assertThat
-import me.fru1t.sqlite.Table
+import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.constraint.resolutionstrategy.OnForeignKeyConflict
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -64,5 +64,5 @@ class ForeignKeyTest {
   }
 }
 
-private data class ParentTable(val id: Int) : Table<ParentTable>()
-private data class ChildTable(val id: Int, val parentTableId: Int) : Table<ChildTable>()
+private data class ParentTable(val id: Int) : TableColumns<ParentTable>()
+private data class ChildTable(val id: Int, val parentTableId: Int) : TableColumns<ChildTable>()

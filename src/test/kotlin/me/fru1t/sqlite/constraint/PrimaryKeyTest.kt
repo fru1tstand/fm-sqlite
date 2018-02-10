@@ -1,7 +1,7 @@
 package me.fru1t.sqlite.constraint
 
 import com.google.common.truth.Truth.assertThat
-import me.fru1t.sqlite.Table
+import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.annotation.Column
 import me.fru1t.sqlite.annotation.DataType.INTEGER
 import org.junit.jupiter.api.Test
@@ -63,4 +63,4 @@ class PrimaryKeyTest {
 }
 
 private data class TestTable(@Column(INTEGER) val param1: Int, @Column(INTEGER) val param2: Int) :
-    Table<TestTable>()
+    TableColumns<TestTable>()

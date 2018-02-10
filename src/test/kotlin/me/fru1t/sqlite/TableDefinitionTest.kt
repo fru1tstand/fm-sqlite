@@ -43,4 +43,4 @@ class TableDefinitionTest {
   }
 }
 
-data class ExampleTable(val id: Int) : Table<ExampleTable>()
+data class ExampleTable(val id: Int) : TableColumns<ExampleTable>()

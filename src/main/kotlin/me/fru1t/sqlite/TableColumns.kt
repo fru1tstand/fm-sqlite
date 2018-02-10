@@ -16,7 +16,7 @@ import kotlin.reflect.jvm.javaField
  *
  * Example usage:
  * ```
- * data class Foo(@Column(INTEGER) val id: Int) : Table<Foo>
+ * data class Foo(@Column(INTEGER) val id: Int) : TableColumns<Foo>
  * ```
  *
  * For adding columns to the table, see [Column].
@@ -33,7 +33,7 @@ import kotlin.reflect.jvm.javaField
  * See [withoutRowId].
  * @param schemaName Specifies a schema name. See [schemaName].
  */
-abstract class Table<T : Table<T>>(
+abstract class TableColumns<T : TableColumns<T>>(
     /**
      * By default, every row in SQLite has a special column, usually called the "`rowid`", that
      * uniquely identifies that row within the table. However if the phrase "`WITHOUT ROWID`" is
@@ -64,7 +64,7 @@ abstract class Table<T : Table<T>>(
      * data class name to snake case. For example, `ThisExampleTableName` will be converted to
      * `this_example_table_name`.
      */
-    fun <T : Table<T>> getTableName(table: KClass<T>): String {
+    fun <T : TableColumns<T>> getTableName(table: KClass<T>): String {
       return convertCamelCaseToSnakeCase(table.simpleName!!)
     }
 
@@ -73,7 +73,7 @@ abstract class Table<T : Table<T>>(
      * field name to snake case. For example, `thisExampleColumnName` will be converted to
      * `this_example_column_name`.
      */
-    fun <T : Table<T>> getColumnName(column: KProperty1<T, *>): String {
+    fun <T : TableColumns<T>> getColumnName(column: KProperty1<T, *>): String {
       return convertCamelCaseToSnakeCase(column.name)
     }
 
@@ -96,7 +96,7 @@ abstract class Table<T : Table<T>>(
      * This method solves #2, that is, one can use [getColumnAnnotation] by passing in the field
      * [KProperty1] like `getColumnAnnotation(Foo::bar)`.
      */
-    fun <T : Table<T>> getColumnAnnotation(column: KProperty1<T, *>): Column {
+    fun <T : TableColumns<T>> getColumnAnnotation(column: KProperty1<T, *>): Column {
       val table = getTableFromColumn(column)
       return table.primaryConstructor!!.findParameterByName(column.name)!!.findAnnotation()
           ?: throw LocalSqliteException(
@@ -105,7 +105,7 @@ abstract class Table<T : Table<T>>(
 
     /** Returns the table [KClass] that the [column] belongs to. */
     @Suppress("UNCHECKED_CAST")
-    fun <T : Table<T>> getTableFromColumn(column: KProperty1<T, *>): KClass<T> {
+    fun <T : TableColumns<T>> getTableFromColumn(column: KProperty1<T, *>): KClass<T> {
       return column.javaField!!.declaringClass.kotlin as KClass<T>
     }
 

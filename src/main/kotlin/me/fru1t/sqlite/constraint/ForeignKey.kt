@@ -1,7 +1,7 @@
 package me.fru1t.sqlite.constraint
 
 import me.fru1t.sqlite.Constraint
-import me.fru1t.sqlite.Table
+import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.constraint.resolutionstrategy.OnForeignKeyConflict
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -14,7 +14,7 @@ import kotlin.reflect.KProperty1
  *
  * See [ForeignKey] for example usage.
  */
-infix fun <L : Table<L>, F : Table<F>, T : Any> KProperty1<L, T>.references(
+infix fun <L : TableColumns<L>, F : TableColumns<F>, T : Any> KProperty1<L, T>.references(
     referenceColumn: KProperty1<F, T>): ForeignKey<L, F, T> {
   return ForeignKey(
       this,
@@ -32,8 +32,8 @@ infix fun <L : Table<L>, F : Table<F>, T : Any> KProperty1<L, T>.references(
  * Example usage:
  * ```
  * // Define the tables that will be used
- * data class ExampleUser(val id: Int) : Table<ExampleUser>()
- * data class ExamplePost(val id: Int, val exampleUserId: Int) : Table<ExamplePost>()
+ * data class ExampleUser(val id: Int) : TableColumns<ExampleUser>()
+ * data class ExamplePost(val id: Int, val exampleUserId: Int) : TableColumns<ExamplePost>()
  *
  * // Example code block
  * fun main(args: Array<String>) {
@@ -49,7 +49,7 @@ infix fun <L : Table<L>, F : Table<F>, T : Any> KProperty1<L, T>.references(
  *
  * See [https://sqlite.org/foreignkeys.html] for official SQLite documentation of foreign keys.
  */
-data class ForeignKey<L : Table<L>, F : Table<F>, out T : Any>(
+data class ForeignKey<L : TableColumns<L>, F : TableColumns<F>, out T : Any>(
     val childColumn: KProperty1<L, T>,
     val parentColumn: KProperty1<F, T>,
     val onUpdate: OnForeignKeyConflict,
@@ -64,9 +64,9 @@ data class ForeignKey<L : Table<L>, F : Table<F>, out T : Any>(
   override fun getConstraintSqlClause(): String {
     return SQL_CLAUSE.format(
         getConstraintName(),
-        Table.getColumnName(childColumn),
-        Table.getTableName(getForeignTable()),
-        Table.getColumnName(parentColumn),
+        TableColumns.getColumnName(childColumn),
+        TableColumns.getTableName(getForeignTable()),
+        TableColumns.getColumnName(parentColumn),
         onUpdate.getOnUpdateClause(),
         onDelete.getOnDeleteClause())
   }
@@ -77,19 +77,19 @@ data class ForeignKey<L : Table<L>, F : Table<F>, out T : Any>(
    */
   fun getConstraintName(): String {
     return CONSTRAINT_NAME.format(
-        Table.getTableName(getLocalTable()),
-        Table.getTableName(getForeignTable()),
-        Table.getColumnName(parentColumn))
+        TableColumns.getTableName(getLocalTable()),
+        TableColumns.getTableName(getForeignTable()),
+        TableColumns.getColumnName(parentColumn))
   }
 
   /** Returns the [KClass] of the local (referent) table. */
   fun getLocalTable(): KClass<L> {
-    return Table.getTableFromColumn(childColumn)
+    return TableColumns.getTableFromColumn(childColumn)
   }
 
   /** Returns the [KClass] of the foreign (referenced) table. */
   fun getForeignTable(): KClass<F> {
-    return Table.getTableFromColumn(parentColumn)
+    return TableColumns.getTableFromColumn(parentColumn)
   }
 
   companion object {

@@ -1,6 +1,6 @@
 package me.fru1t.sqlite.constraint
 
-import me.fru1t.sqlite.Table
+import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.constraint.resolutionstrategy.OnConflict
 import java.util.Arrays
 import kotlin.reflect.KProperty1
@@ -18,7 +18,7 @@ import kotlin.reflect.KProperty1
  * data class ExampleTable(
  *     @Column(TEXT) val username: String,
  *     @Column(TEXT) val email: String
- * ) extends Table<ExampleTable>() {
+ * ) extends TableColumns<ExampleTable>() {
  *   companion object {
  *     val UQ_USERNAME_EMAIL =
  *         Unique.of(OnConflict.ABORT, ExampleTable::username, ExampleTable::email)
@@ -45,7 +45,7 @@ import kotlin.reflect.KProperty1
  *  2. `CREATE TABLE t1(a, b PRIMARY KEY);`
  *  3. `CREATE TABLE t1(a, b); CREATE UNIQUE INDEX t1b ON t1(b);`
  */
-data class Unique<T : Table<T>>(
+data class Unique<T : TableColumns<T>>(
     val columns: Array<out KProperty1<T, *>>, val onConflict: OnConflict) {
   /**
    * Returns the SQL clause to create this [Unique] constraint from a `CREATE TABLE` statement.
@@ -62,7 +62,7 @@ data class Unique<T : Table<T>>(
       if (index > 0) {
         flattenedColumnNames.append(',')
       }
-      flattenedColumnNames.append('`').append(Table.getColumnName(column)).append('`')
+      flattenedColumnNames.append('`').append(TableColumns.getColumnName(column)).append('`')
     }}
     return SQL_CLAUSE.format(
         getConstraintName(), flattenedColumnNames.toString(), onConflict.getSqlClause())
@@ -79,7 +79,7 @@ data class Unique<T : Table<T>>(
       if (index > 0) {
         name.append('_')
       }
-      name.append(Table.getColumnName(column))
+      name.append(TableColumns.getColumnName(column))
     }}
     return CONSTRAINT_NAME.format(name.toString())
   }
@@ -108,7 +108,7 @@ data class Unique<T : Table<T>>(
      * Creates a [Unique] constraint for [Table] ([T]) consisting of [columns] and optionally using
      * the specified [onConflict] resolution strategy.
      */
-    fun <T : Table<T>> of(
+    fun <T : TableColumns<T>> of(
         onConflict: OnConflict = OnConflict.ABORT, vararg columns: KProperty1<T, *>) : Unique<T> {
       return Unique(columns, onConflict)
     }

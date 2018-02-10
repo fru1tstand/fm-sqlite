@@ -10,12 +10,12 @@ import kotlin.reflect.KClass
  *
  * Use [TableDefinition.of] to create instances of the builder class.
  */
-data class TableDefinition<T : Table<T>>(
+data class TableDefinition<T : TableColumns<T>>(
     val table: KClass<T>,
     val withoutRowId: Boolean = false,
     val constraints: List<Constraint<T>> = emptyList()) {
 
-  class Builder<T : Table<T>>(val table: KClass<T>) {
+  class Builder<T : TableColumns<T>>(val table: KClass<T>) {
     var withoutRowId: Boolean = false
     var constraints: MutableList<Constraint<T>> = ArrayList()
 
@@ -38,6 +38,6 @@ data class TableDefinition<T : Table<T>>(
 
   companion object {
     /** Alias for creating new [TableDefinition.Builder]s. */
-    fun <T : Table<T>> of(table: KClass<T>): Builder<T> = Builder(table)
+    fun <T : TableColumns<T>> of(table: KClass<T>): Builder<T> = Builder(table)
   }
 }
