@@ -2,7 +2,7 @@ package me.fru1t.sqlite
 
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.annotation.Column
-import me.fru1t.sqlite.annotation.DataType.INTEGER
+import me.fru1t.sqlite.DataType.INTEGER
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 

@@ -3,7 +3,7 @@ package me.fru1t.sqlite.clause.constraint
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.annotation.Column
-import me.fru1t.sqlite.annotation.DataType.INTEGER
+import me.fru1t.sqlite.DataType.INTEGER
 import me.fru1t.sqlite.clause.constraint.resolutionstrategy.OnConflict
 import org.junit.jupiter.api.Test
 

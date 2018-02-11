@@ -1,6 +1,6 @@
 package me.fru1t.sqlite.clause.constraint
 
-import me.fru1t.sqlite.annotation.DataType
+import me.fru1t.sqlite.DataType
 import me.fru1t.sqlite.TableColumns
 import java.util.Arrays
 import kotlin.reflect.KProperty1
