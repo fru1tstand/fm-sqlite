@@ -16,7 +16,8 @@ class TableDefinition<T : TableColumns<T>> private constructor(
     val columnsClass: KClass<T>,
     val withoutRowId: Boolean,
     val constraints: List<Constraint<T>>,
-    val defaults: Map<KParameter, Any>) {
+    val defaults: Map<KParameter, Any>,
+    val autoIncrementColumn: KParameter?) {
 
   /**
    * A builder class for [TableDefinition] which verifies consistency on [build].
@@ -37,6 +38,9 @@ class TableDefinition<T : TableColumns<T>> private constructor(
     /** Stores the constraints on the table such as `FOREIGN KEY`, `UNIQUE`, etc. */
     var constraints: MutableList<Constraint<T>> = ArrayList()
 
+    /** Stores the column to mark as `AUTOINCREMENT`. */
+    private var autoIncrementColumn: KParameter? = null
+
     /**
      * Stores the default values associated to each column. If a column doesn't have an entry, no
      * default will be defined in the `CREATE TABLE` statement. A default value must be explicitly
@@ -52,6 +56,22 @@ class TableDefinition<T : TableColumns<T>> private constructor(
     /** Add a single constraint to this [TableDefinition.Builder]. */
     fun constraint(constraint: Constraint<T>): Builder<T> {
       constraints.add(constraint)
+      return this
+    }
+
+    /**
+     * Sets a [column] to use `AUTOINCREMENT`. Please read
+     * [the official documentation][http://www.sqlite.org/autoinc.html] before opting to use this.
+     * In most cases you don't need to, and instead, you can rely on the `ROWID` column.
+     *
+     * @throws LocalSqliteException if an [autoIncrementColumn] already exists for this [Builder]
+     */
+    fun autoIncrement(column: KProperty1<T, Int>): Builder<T> {
+      if (autoIncrementColumn != null) {
+        throw LocalSqliteException("${columnsClass.simpleName} already has AUTOINCREMENT column " +
+            "'${autoIncrementColumn!!.name}', cannot add another '${column.name}'")
+      }
+      autoIncrementColumn = columnsClass.primaryConstructor!!.findParameterByName(column.name)
       return this
     }
 
@@ -104,7 +124,7 @@ class TableDefinition<T : TableColumns<T>> private constructor(
         }
       }
 
-      return TableDefinition(columnsClass, withoutRowId, constraints, defaults)
+      return TableDefinition(columnsClass, withoutRowId, constraints, defaults, autoIncrementColumn)
     }
   }
 

@@ -92,6 +92,25 @@ class TableDefinitionTest {
   }
 
   @Test
+  fun builder_autoIncrement() {
+    val result = builder.autoIncrement(Table::id).build()
+    assertThat(result.autoIncrementColumn)
+        .isEqualTo(Table::class.primaryConstructor!!.findParameterByName(Table::id.name))
+  }
+
+  @Test
+  fun builder_autoIncrement_exists() {
+    try {
+      builder.autoIncrement(Table::id).autoIncrement(Table::id)
+      fail<Unit>("Expected LocalSqliteException for existing auto increment column")
+    } catch (e: LocalSqliteException) {
+      assertThat(e).hasMessageThat().contains(Table::id.name)
+      assertThat(e).hasMessageThat().contains(Table::class.simpleName!!)
+      assertThat(e).hasMessageThat().contains("already has AUTOINCREMENT column")
+    }
+  }
+
+  @Test
   fun builder_build_noDefaultDefined() {
     try {
       TableDefinition.Builder(Table::class).build()
