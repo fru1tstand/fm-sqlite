@@ -1,11 +1,7 @@
 package me.fru1t.sqlite
 
-import me.fru1t.sqlite.annotation.Column
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.findParameterByName
-import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaField
 
 /**
@@ -75,32 +71,6 @@ abstract class TableColumns<T : TableColumns<T>>(
      */
     fun <T : TableColumns<T>> getColumnName(column: KProperty1<T, *>): String {
       return convertCamelCaseToSnakeCase(column.name)
-    }
-
-    /**
-     * Retrieves the [Column] annotation for the given [column] belonging to a table.
-     *
-     * Take the following code snippet, for example:
-     * `data class Foo(@Column(INTEGER) val bar: String)`
-     *
-     * One would want to believe one could write `Foo::bar.findAnnotation<Column>`
-     * however, the reference `Foo::bar` isn't referencing the constructor, it's referencing the
-     * generated field within Foo `val bar` which doesn't have the annotation.
-     * Two solutions:
-     *   1) Repeat the annotation by defining it in the field as well:
-     *      `data class Foo(@property:Column(INTEGER) @Column(INTEGER) bar)`
-     *      which would make our call `Foo::bar.findAnnotation<Column>` work.
-     *   2) Create a helper method that extracts the constructor's annotation from a generated
-     *      field.
-     *
-     * This method solves #2, that is, one can use [getColumnAnnotation] by passing in the field
-     * [KProperty1] like `getColumnAnnotation(Foo::bar)`.
-     */
-    fun <T : TableColumns<T>> getColumnAnnotation(column: KProperty1<T, *>): Column {
-      val table = getTableFromColumn(column)
-      return table.primaryConstructor!!.findParameterByName(column.name)!!.findAnnotation()
-          ?: throw LocalSqliteException(
-              "Missing @Column annotation on <${table.qualifiedName}#${column.name}>")
     }
 
     /** Returns the table [KClass] that the [column] belongs to. */
