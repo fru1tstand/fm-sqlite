@@ -87,7 +87,9 @@ class TableDefinitionTest {
     } catch (e: LocalSqliteException) {
       assertThat(e).hasMessageThat().contains(Table::default.name)
       assertThat(e).hasMessageThat().contains(Table::class.simpleName!!)
-      assertThat(e).hasMessageThat().contains("default is already defined")
+      assertThat(e).hasMessageThat().contains(Table.DEFAULT.toString())
+      assertThat(e).hasMessageThat().contains(0.toString())
+      assertThat(e).hasMessageThat().contains("already has the default value of")
     }
   }
 
@@ -101,12 +103,13 @@ class TableDefinitionTest {
   @Test
   fun builder_autoIncrement_exists() {
     try {
-      builder.autoIncrement(Table::id).autoIncrement(Table::id)
+      builder.autoIncrement(Table::id).autoIncrement(Table::default)
       fail<Unit>("Expected LocalSqliteException for existing auto increment column")
     } catch (e: LocalSqliteException) {
       assertThat(e).hasMessageThat().contains(Table::id.name)
+      assertThat(e).hasMessageThat().contains(Table::default.name)
       assertThat(e).hasMessageThat().contains(Table::class.simpleName!!)
-      assertThat(e).hasMessageThat().contains("already has AUTOINCREMENT column")
+      assertThat(e).hasMessageThat().contains("already has an autoincrement column")
     }
   }
 

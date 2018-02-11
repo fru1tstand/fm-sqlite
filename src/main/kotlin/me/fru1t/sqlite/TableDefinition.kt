@@ -68,8 +68,9 @@ class TableDefinition<T : TableColumns<T>> private constructor(
      */
     fun autoIncrement(column: KProperty1<T, Int>): Builder<T> {
       if (autoIncrementColumn != null) {
-        throw LocalSqliteException("${columnsClass.simpleName} already has AUTOINCREMENT column " +
-            "'${autoIncrementColumn!!.name}', cannot add another '${column.name}'")
+        throw LocalSqliteException(
+            "${columnsClass.simpleName} already has an autoincrement column " +
+                "'${autoIncrementColumn!!.name}', cannot set autoincrement on '${column.name}'")
       }
       autoIncrementColumn = columnsClass.primaryConstructor!!.findParameterByName(column.name)
       return this
@@ -92,6 +93,9 @@ class TableDefinition<T : TableColumns<T>> private constructor(
      *   }
      * }
      * ```
+     *
+     * @throws LocalSqliteException if [column] isn't an optional parameter
+     * @throws LocalSqliteException if [column] already has a default defined
      */
     fun <E : Any> default(column: KProperty1<T, E?>, default: E): Builder<T> {
       val columnAsKParameter = columnsClass.primaryConstructor!!.findParameterByName(column.name)!!
@@ -106,7 +110,8 @@ class TableDefinition<T : TableColumns<T>> private constructor(
       // Must not exist already
       defaults.putIfAbsent(columnAsKParameter, default)?.let {
         throw LocalSqliteException(
-            "A default is already defined for ${columnsClass.simpleName}.${column.name}")
+            "${columnsClass.simpleName}.${column.name} already has the default value of '$it', " +
+                "cannot set it to '$default'")
       }
 
       return this
