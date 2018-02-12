@@ -54,13 +54,13 @@ class ForeignKeyTest {
   }
 
   @Test
-  fun getLocalTable() {
-    assertThat(foreignKey.getLocalTable()).isEqualTo(ChildTable::class)
+  fun getChildTable() {
+    assertThat(foreignKey.getChildTable()).isEqualTo(ChildTable::class)
   }
 
   @Test
-  fun getForeignTable() {
-    assertThat(foreignKey.getForeignTable()).isEqualTo(ParentTable::class)
+  fun getParentTable() {
+    assertThat(foreignKey.getParentTable()).isEqualTo(ParentTable::class)
   }
 }
 

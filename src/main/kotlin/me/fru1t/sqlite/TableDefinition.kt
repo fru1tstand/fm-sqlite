@@ -48,6 +48,16 @@ class TableDefinition<T : TableColumns<T>> private constructor(
      */
     private val defaults: MutableMap<KParameter, Any> = HashMap()
 
+    /**
+     * By default, every row in SQLite has a special column, usually called the "`rowid`", that
+     * uniquely identifies that row within the table. However if the phrase "`WITHOUT ROWID`" is
+     * added to the end of a `CREATE TABLE` statement, then the special "`rowid`" column is omitted.
+     * There are sometimes space and performance advantages to omitting the rowid.
+     *
+     * A `WITHOUT ROWID` table is a table that uses a Clustered Index as the primary key.
+     *
+     * See [https://sqlite.org/withoutrowid.html] for official documentation.
+     */
     fun withoutRowId(withoutRowId: Boolean): Builder<T> {
       this.withoutRowId = withoutRowId
       return this

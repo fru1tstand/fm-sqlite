@@ -5,21 +5,20 @@ import org.junit.jupiter.api.Test
 
 class TableColumnsTest {
   @Test
-  fun getTableName() {
-    assertThat(TableColumns.getTableName(LongTableNameClassForUseInTesting::class))
+  fun kClass_getDatabaseName() {
+    assertThat(LongTableNameClassForUseInTesting::class.getDatabaseName())
         .isEqualTo("long_table_name_class_for_use_in_testing")
   }
 
   @Test
-  fun getColumnName() {
-    assertThat(TableColumns.getColumnName(LongColumnClass::thisHasAReallyLongColumnName))
+  fun kProperty1_getDatabaseName() {
+    assertThat(LongColumnClass::thisHasAReallyLongColumnName.getDatabaseName())
         .isEqualTo("this_has_a_really_long_column_name")
   }
 
   @Test
-  fun getTableFromColumn() {
-    val resultTable = TableColumns.getTableFromColumn(ValidTable::id)
-    assertThat(resultTable).isEqualTo(ValidTable::class)
+  fun kProperty1_getTable() {
+    assertThat(ValidTable::id.getTable()).isEqualTo(ValidTable::class)
   }
 }
 

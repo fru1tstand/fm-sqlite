@@ -3,6 +3,8 @@ package me.fru1t.sqlite.clause.constraint
 import me.fru1t.sqlite.clause.Constraint
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.clause.constraint.resolutionstrategy.OnForeignKeyConflict
+import me.fru1t.sqlite.getDatabaseName
+import me.fru1t.sqlite.getTable
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
@@ -64,9 +66,9 @@ data class ForeignKey<L : TableColumns<L>, F : TableColumns<F>, out T : Any>(
   override fun getClause(): String {
     return SQL_CLAUSE.format(
         getConstraintName(),
-        TableColumns.getColumnName(childColumn),
-        TableColumns.getTableName(getForeignTable()),
-        TableColumns.getColumnName(parentColumn),
+        childColumn.getDatabaseName(),
+        parentColumn.getTable().getDatabaseName(),
+        parentColumn.getDatabaseName(),
         onUpdate.getOnUpdateClause(),
         onDelete.getOnDeleteClause())
   }
@@ -77,20 +79,16 @@ data class ForeignKey<L : TableColumns<L>, F : TableColumns<F>, out T : Any>(
    */
   fun getConstraintName(): String {
     return CONSTRAINT_NAME.format(
-        TableColumns.getTableName(getLocalTable()),
-        TableColumns.getTableName(getForeignTable()),
-        TableColumns.getColumnName(parentColumn))
+        childColumn.getTable().getDatabaseName(),
+        parentColumn.getTable().getDatabaseName(),
+        parentColumn.getDatabaseName())
   }
 
-  /** Returns the [KClass] of the local (referent) table. */
-  fun getLocalTable(): KClass<L> {
-    return TableColumns.getTableFromColumn(childColumn)
-  }
+  /** Returns the [KClass] of the child (local) table. */
+  fun getChildTable(): KClass<L> = childColumn.getTable()
 
-  /** Returns the [KClass] of the foreign (referenced) table. */
-  fun getForeignTable(): KClass<F> {
-    return TableColumns.getTableFromColumn(parentColumn)
-  }
+  /** Returns the [KClass] of the parent (referenced) table. */
+  fun getParentTable(): KClass<F> = parentColumn.getTable()
 
   companion object {
     private const val CONSTRAINT_NAME = "fk_%s_%s_%s"
