@@ -23,15 +23,21 @@ infix fun <T : TableColumns<T>> KProperty1<T, *>.and(
   IndexedColumn(this) and indexedColumn
 
 /**
- * A clause that groups one or more columns in sequence. Each column may optionally contain an
- * [Order].
+ * A clause that groups one or more columns in the [TableColumns] definition [T]. Each column may
+ * optionally contain an [Order].
  */
-interface IndexedColumnGroupClause : Clause {
+interface IndexedColumnGroupClause<T : TableColumns<T>> : Clause {
   /**
    * Fetches the complete column group sql clause with column [Order] if specified. For example
    * ``(`example_user_id` DESC, `example_post`, `example_target` ASC)``.
    */
   override fun getClause(): String
+
+  /**
+   * Fetches the complete column group sql clause without each column's respective [Order]. For
+   * example, ``(`example_user_id`, `example_post`, `example_target`)``.
+   */
+  fun getClauseWithoutOrder(): String
 }
 
 /**
@@ -40,11 +46,11 @@ interface IndexedColumnGroupClause : Clause {
  * `PRIMARY KEY` constraints, but may have other column-order applications.
  */
 data class IndexedColumn<T : TableColumns<T>>(
-    val column: KProperty1<T, *>, val order: Order? = null) : IndexedColumnGroupClause {
-  /** Fetches the complete column group sql clause with this single column. */
+    val column: KProperty1<T, *>, val order: Order? = null) : IndexedColumnGroupClause<T> {
   override fun getClause(): String = "(${getClauseWithoutGroup()})"
 
-  /** Fetches the [IndexedColumn] sql clause for this single column. */
+  override fun getClauseWithoutOrder(): String = "(`${column.getSqlName()}`)"
+
   fun getClauseWithoutGroup(): String =
     "`${column.getSqlName()}`" + (order?.let { " ${it.value}" } ?: "")
 
@@ -63,7 +69,7 @@ data class IndexedColumn<T : TableColumns<T>>(
  * column-grouping applications.
  */
 class IndexedColumnGroup<T : TableColumns<T>> (
-    initialIndexedColumn: IndexedColumn<T>) : IndexedColumnGroupClause {
+    initialIndexedColumn: IndexedColumn<T>) : IndexedColumnGroupClause<T> {
   /** Creates an [IndexedColumnGroup] from a single column. */
   constructor(initialColumn: KProperty1<T, *>) : this(IndexedColumn(initialColumn))
 
@@ -76,18 +82,9 @@ class IndexedColumnGroup<T : TableColumns<T>> (
     _columns.add(initialIndexedColumn)
   }
 
-
-  /**
-   * Returns this list of columns and their respective declared [Order]. For example,
-   * ``(`col_1` ASC, `col_2` DESC)``.
-   */
   override fun getClause(): String = "(${_columns.joinToString { it.getClauseWithoutGroup() }})"
 
-  /**
-   * Returns this list of columns without their respective declared [Order]. For example,
-   * ``(`col_1`, `col_2`)``.
-   */
-  fun getColumnOnlyClause(): String =
+  override fun getClauseWithoutOrder(): String =
     "(${_columns.joinToString { "`${it.column.getSqlName()}`" }})"
 
 

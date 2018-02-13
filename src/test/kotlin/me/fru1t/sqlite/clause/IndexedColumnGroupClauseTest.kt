@@ -42,6 +42,11 @@ class IndexedColumnTest {
   }
 
   @Test
+  fun getClauseWithoutOrder() {
+    assertThat(indexedColumn.getClauseWithoutOrder()).isEqualTo("(`a`)")
+  }
+
+  @Test
   fun getClauseWithoutGroup() {
     assertThat(indexedColumn.getClauseWithoutGroup()).isEqualTo("`a` DESC")
   }
@@ -86,7 +91,7 @@ class IndexedColumnGroupTest() {
 
   @Test
   fun getColumnOnlyClause() {
-    assertThat(indexedColumnGroup.getColumnOnlyClause()).isEqualTo("(`a`, `b`)")
+    assertThat(indexedColumnGroup.getClauseWithoutOrder()).isEqualTo("(`a`, `b`)")
   }
 
   @Test
