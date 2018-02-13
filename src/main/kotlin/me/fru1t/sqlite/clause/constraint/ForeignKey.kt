@@ -3,7 +3,7 @@ package me.fru1t.sqlite.clause.constraint
 import me.fru1t.sqlite.clause.Constraint
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.clause.constraint.resolutionstrategy.OnForeignKeyConflict
-import me.fru1t.sqlite.getDatabaseName
+import me.fru1t.sqlite.getSqlName
 import me.fru1t.sqlite.getTable
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -66,9 +66,9 @@ data class ForeignKey<L : TableColumns<L>, F : TableColumns<F>, out T : Any>(
   override fun getClause(): String {
     return SQL_CLAUSE.format(
         getConstraintName(),
-        childColumn.getDatabaseName(),
-        parentColumn.getTable().getDatabaseName(),
-        parentColumn.getDatabaseName(),
+        childColumn.getSqlName(),
+        parentColumn.getTable().getSqlName(),
+        parentColumn.getSqlName(),
         onUpdate.getOnUpdateClause(),
         onDelete.getOnDeleteClause())
   }
@@ -79,9 +79,9 @@ data class ForeignKey<L : TableColumns<L>, F : TableColumns<F>, out T : Any>(
    */
   fun getConstraintName(): String {
     return CONSTRAINT_NAME.format(
-        childColumn.getTable().getDatabaseName(),
-        parentColumn.getTable().getDatabaseName(),
-        parentColumn.getDatabaseName())
+        childColumn.getTable().getSqlName(),
+        parentColumn.getTable().getSqlName(),
+        parentColumn.getSqlName())
   }
 
   /** Returns the [KClass] of the child (local) table. */

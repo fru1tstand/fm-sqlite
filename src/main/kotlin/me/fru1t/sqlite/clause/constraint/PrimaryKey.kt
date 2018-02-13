@@ -2,7 +2,7 @@ package me.fru1t.sqlite.clause.constraint
 
 import me.fru1t.sqlite.DataType
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.getDatabaseName
+import me.fru1t.sqlite.getSqlName
 import java.util.Arrays
 import kotlin.reflect.KProperty1
 
@@ -74,7 +74,7 @@ data class PrimaryKey<T : TableColumns<T>>(val columns: Array<out KProperty1<T, 
       if (index > 0) {
         primaryKeyColumnText.append(',')
       }
-      primaryKeyColumnText.append('`').append(column.getDatabaseName()).append('`')
+      primaryKeyColumnText.append('`').append(column.getSqlName()).append('`')
     }}
     return SQL_CLAUSE.format(primaryKeyColumnText.toString())
   }

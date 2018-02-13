@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Test
 class TableColumnsTest {
   @Test
   fun kClass_getDatabaseName() {
-    assertThat(LongTableNameClassForUseInTesting::class.getDatabaseName())
+    assertThat(LongTableNameClassForUseInTesting::class.getSqlName())
         .isEqualTo("long_table_name_class_for_use_in_testing")
   }
 
   @Test
   fun kProperty1_getDatabaseName() {
-    assertThat(LongColumnClass::thisHasAReallyLongColumnName.getDatabaseName())
+    assertThat(LongColumnClass::thisHasAReallyLongColumnName.getSqlName())
         .isEqualTo("this_has_a_really_long_column_name")
   }
 

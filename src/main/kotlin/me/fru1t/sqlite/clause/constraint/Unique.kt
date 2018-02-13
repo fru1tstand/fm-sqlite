@@ -2,7 +2,7 @@ package me.fru1t.sqlite.clause.constraint
 
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.clause.constraint.resolutionstrategy.OnConflict
-import me.fru1t.sqlite.getDatabaseName
+import me.fru1t.sqlite.getSqlName
 import java.util.Arrays
 import kotlin.reflect.KProperty1
 
@@ -63,7 +63,7 @@ data class Unique<T : TableColumns<T>>(
       if (index > 0) {
         flattenedColumnNames.append(',')
       }
-      flattenedColumnNames.append('`').append(column.getDatabaseName()).append('`')
+      flattenedColumnNames.append('`').append(column.getSqlName()).append('`')
     }}
     return SQL_CLAUSE.format(
         getConstraintName(), flattenedColumnNames.toString(), onConflict.getSqlClause())
@@ -80,7 +80,7 @@ data class Unique<T : TableColumns<T>>(
       if (index > 0) {
         name.append('_')
       }
-      name.append(column.getDatabaseName())
+      name.append(column.getSqlName())
     }}
     return CONSTRAINT_NAME.format(name.toString())
   }

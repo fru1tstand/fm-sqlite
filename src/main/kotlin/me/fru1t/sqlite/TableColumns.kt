@@ -22,14 +22,14 @@ private fun String.toSnakeCase(): String {
  * pascal case class name to snake case. For example, `ThisExampleTableName` will be converted to
  * `this_example_table_name`.
  */
-fun <T : TableColumns<T>> KClass<T>.getDatabaseName() = this.simpleName!!.toSnakeCase()
+fun <T : TableColumns<T>> KClass<T>.getSqlName() = this.simpleName!!.toSnakeCase()
 
 /**
  * Returns the proper database name for a column as a [String] by converting the camel case
  * field name to snake case. For example, `thisExampleColumnName` will be converted to
  * `this_example_column_name`.
  */
-fun <T : TableColumns<T>> KProperty1<T, *>.getDatabaseName() = this.name.toSnakeCase()
+fun <T : TableColumns<T>> KProperty1<T, *>.getSqlName() = this.name.toSnakeCase()
 
 /** Returns the [TableColumns] [KClass] that this column property belongs to. */
 @Suppress("UNCHECKED_CAST")

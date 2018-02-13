@@ -3,7 +3,7 @@ package me.fru1t.sqlite.clause
 import me.fru1t.sqlite.Clause
 import me.fru1t.sqlite.Order
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.getDatabaseName
+import me.fru1t.sqlite.getSqlName
 import me.fru1t.sqlite.getTable
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.primaryConstructor
@@ -46,7 +46,7 @@ data class IndexedColumn<T : TableColumns<T>>(
 
   /** Fetches the [IndexedColumn] sql clause for this single column. */
   fun getClauseWithoutGroup(): String =
-    "`${column.getDatabaseName()}`" + (order?.let { " ${it.value}" } ?: "")
+    "`${column.getSqlName()}`" + (order?.let { " ${it.value}" } ?: "")
 
   /** Creates an [IndexedColumnGroup] with this [IndexedColumn] and [another][indexedColumn]. */
   infix fun and(indexedColumn: IndexedColumn<T>): IndexedColumnGroup<T> =
@@ -88,7 +88,7 @@ class IndexedColumnGroup<T : TableColumns<T>> (
    * ``(`col_1`, `col_2`)``.
    */
   fun getColumnOnlyClause(): String =
-    "(${_columns.joinToString { "`${it.column.getDatabaseName()}`" }})"
+    "(${_columns.joinToString { "`${it.column.getSqlName()}`" }})"
 
 
   /** Adds an [indexedColumn] to the end of this [IndexedColumnGroup]. */
