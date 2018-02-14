@@ -4,9 +4,7 @@ import me.fru1t.sqlite.Clause
 import me.fru1t.sqlite.Order
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.getSqlName
-import me.fru1t.sqlite.getTable
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.primaryConstructor
 
 /** Creates an [IndexedColumn] with an [order]. */
 infix fun <T : TableColumns<T>> KProperty1<T, *>.order(order: Order): IndexedColumn<T> =
@@ -38,6 +36,9 @@ interface IndexedColumnGroupClause<T : TableColumns<T>> : Clause {
    * example, ``(`example_user_id`, `example_post`, `example_target`)``.
    */
   fun getClauseWithoutOrder(): String
+
+  /** Retrieves all [IndexedColumn]s associated to this group, in order. */
+  fun getIndexedColumns(): List<IndexedColumn<T>>
 }
 
 /**
@@ -50,6 +51,8 @@ data class IndexedColumn<T : TableColumns<T>>(
   override fun getClause(): String = "(${getClauseWithoutGroup()})"
 
   override fun getClauseWithoutOrder(): String = "(`${column.getSqlName()}`)"
+
+  override fun getIndexedColumns(): List<IndexedColumn<T>> = listOf(this)
 
   fun getClauseWithoutGroup(): String =
     "`${column.getSqlName()}`" + (order?.let { " ${it.value}" } ?: "")
@@ -73,30 +76,29 @@ class IndexedColumnGroup<T : TableColumns<T>> (
   /** Creates an [IndexedColumnGroup] from a single column. */
   constructor(initialColumn: KProperty1<T, *>) : this(IndexedColumn(initialColumn))
 
-  private val _columns = ArrayList<IndexedColumn<T>>(
-      initialIndexedColumn.column.getTable().primaryConstructor!!.parameters.size)
-  val columns: List<IndexedColumn<T>>
-    get() = _columns
+  private val columns = ArrayList<IndexedColumn<T>>()
 
   init {
-    _columns.add(initialIndexedColumn)
+    columns.add(initialIndexedColumn)
   }
 
-  override fun getClause(): String = "(${_columns.joinToString { it.getClauseWithoutGroup() }})"
+  override fun getClause(): String = "(${columns.joinToString { it.getClauseWithoutGroup() }})"
 
   override fun getClauseWithoutOrder(): String =
-    "(${_columns.joinToString { "`${it.column.getSqlName()}`" }})"
+    "(${columns.joinToString { "`${it.column.getSqlName()}`" }})"
+
+  override fun getIndexedColumns(): List<IndexedColumn<T>> = columns
 
 
   /** Adds an [indexedColumn] to the end of this [IndexedColumnGroup]. */
   infix fun and(indexedColumn: IndexedColumn<T>): IndexedColumnGroup<T> {
-    _columns.add(indexedColumn)
+    columns.add(indexedColumn)
     return this
   }
 
   /** Adds a column to the end of this [IndexedColumnGroup]. */
   infix fun and(column: KProperty1<T, *>): IndexedColumnGroup<T> {
-    _columns.add(IndexedColumn(column))
+    columns.add(IndexedColumn(column))
     return this
   }
 }
