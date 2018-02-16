@@ -1,23 +1,35 @@
 package me.fru1t.sqlite.clause.constraint
 
 import me.fru1t.sqlite.DataType
+import me.fru1t.sqlite.DatabaseConstants
+import me.fru1t.sqlite.LocalSqliteException
+import me.fru1t.sqlite.TableColumns
+import me.fru1t.sqlite.TableDefinition
+import me.fru1t.sqlite.clause.Constraint
 
 /**
- * Declares a [`CHECK`][Check] constraint on a [Table]. [`CHECK`][Check] constraints are declared
- * as fields within the companion object of a [Table] implementation. The name of the field isn't
- * used for anything, but it'd be nice to name them following standard convention:
- * `CK_<something meaningful>`
+ * Creates a named [Check] constraint with the name of the calling [String] with the sql logic of
+ * the passed [String]. See [Check] for example usage.
+ */
+infix fun <T : TableColumns<T>> String.checks(sqlLogicClause: String) =
+  Check<T>(sqlLogicClause, this)
+
+/**
+ * Declares a [`CHECK`][Check] [Constraint] on a [TableColumns] [T] [TableDefinition]. [Check]
+ * constraints are added via [TableDefinition.Builder.constraint]. The optional [name] should be a
+ * table-unique sqlite-compliant constraint name (alphanumeric and underscores), preferably starting
+ * with `ck`. The [sqlLogicClause] should be a check constraint compliant logic clause.
  *
  * Example usage:
  * ```
- * data class ExampleTable(
- *     @Column(TEXT) val username: String,
- *     @Column(TEXT) val email: String
- * ) extends TableColumns<ExampleTable>() {
- *   companion object {
- *     val CK_HAS_EITHER_USERNAME_OR_EMAIL = Check("`username` IS NOT NULL OR `email` IS NOT NULL")
- *   }
- * }
+ * // Example table
+ * data class Table(val foo: String, val bar: String) : TableColumns<Table>()
+ *
+ * // Creating a TableDefinition] with a check constraint.
+ * val definition = TableDefinition.of(Table::class)
+ *     .constraint(
+ *         "ck_non_matching_columns" checks
+ *             "`${Table::foo.getSqlName()}` != `${Table::bar.getSqlName()}`")
  * ```
  *
  *
@@ -32,16 +44,28 @@ import me.fru1t.sqlite.DataType
  * non-zero value, it is not a constraint violation. The expression of a [`CHECK`][Check]
  * constraint may not contain a subquery.
  */
-data class Check(val sqlLogicClause: String) {
-  /**
-   * Returns the SQL clause to create this [Check] constraint from a `CREATE TABLE` statement.
-   * Returns an empty string if the [sqlLogicClause] is empty.
-   */
-  fun getConstraintClause(): String {
-    return if (sqlLogicClause.isEmpty()) "" else SQL_CLAUSE.format(sqlLogicClause)
+data class Check<T : TableColumns<T>>(
+    val sqlLogicClause: String, val name: String? = null) : Constraint<T> {
+  companion object {
+    private const val NAMED_CHECK_CONSTRAINT = "CONSTRAINT `%s` CHECK (%s)"
+    private const val UNNAMED_CHECK_CONSTRAINT = "CONSTRAINT CHECK (%s)"
   }
 
-  companion object {
-    private const val SQL_CLAUSE = "CHECK (%s)"
+  init {
+    if (name?.matches(DatabaseConstants.VALID_DATABASE_NAME_REGEX) == false) {
+      throw LocalSqliteException(
+          "Invalid check constraint name <`$name`>, it must follow the regex " +
+              DatabaseConstants.VALID_DATABASE_NAME_REGEX.pattern)
+    }
+    if (sqlLogicClause.isBlank()) {
+      throw LocalSqliteException("Cannot have blank check constraints.")
+    }
+  }
+
+  override fun getClause(): String {
+    return when (name) {
+      null -> UNNAMED_CHECK_CONSTRAINT.format(sqlLogicClause)
+      else -> NAMED_CHECK_CONSTRAINT.format(name, sqlLogicClause)
+    }
   }
 }

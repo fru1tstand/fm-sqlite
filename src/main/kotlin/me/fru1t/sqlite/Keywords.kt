@@ -1,5 +1,10 @@
 package me.fru1t.sqlite
 
+/** Useful constants relating to databases. */
+object DatabaseConstants {
+  val VALID_DATABASE_NAME_REGEX = Regex("^[a-z_][a-z0-9_]*\$")
+}
+
 /** The type of data to be stored in a column. For example: integers, text, raw blobs, etc. */
 enum class DataType(val value: String) {
   /** A signed integer (eg. 1, 2, 3, 4) stored in 1, 2, 3, 4, 6, or 8 bytes. */
