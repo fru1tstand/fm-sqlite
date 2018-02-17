@@ -29,8 +29,6 @@ dependencies {
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: kotlin_version
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlin_version
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.21.0.1'
-    testCompile group: 'org.slf4j', name: 'slf4j-simple', version: '1.6.2'
-    compile group: 'io.github.microutils', name: 'kotlin-logging', version: '1.4.9'
     compile project(':libs/fm-slik-kotlin')
 
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junit_jupiter_version
