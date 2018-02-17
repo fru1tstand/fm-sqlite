@@ -1,6 +1,7 @@
 package me.fru1t.sqlite.clause
 
 import me.fru1t.sqlite.Clause
+import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.Order
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.getSqlName
@@ -39,7 +40,10 @@ data class IndexedColumn<T : TableColumns<T>>(
 /**
  * Represents the repeated [`indexed-column`][https://www.sqlite.org/syntax/indexed-column.html]
  * clause. The base use case for these are the `UNIQUE` and `PRIMARY KEY` constraints, but may other
- * column-grouping applications.
+ * column-grouping applications. [IndexedColumnGroup.columns] will always contain at least one
+ * column.
+ *
+ * @throws LocalSqliteException if no columns are given to the group
  */
 data class IndexedColumnGroup<T : TableColumns<T>>(val columns: List<IndexedColumn<T>>) : Clause {
   /** Creates an [IndexedColumnGroup] from an initial column. */
@@ -48,10 +52,16 @@ data class IndexedColumnGroup<T : TableColumns<T>>(val columns: List<IndexedColu
   /** Creates an [IndexedColumnGroup] from an initial [IndexedColumn]. */
   constructor(initialColumn: IndexedColumn<T>) : this(listOf(initialColumn))
 
-  /** Example: ``(`post_id`,`name`,`email`)``. */
+  init {
+    if (columns.isEmpty()) {
+      throw LocalSqliteException("IndexedColumnGroup cannot have zero columns.")
+    }
+  }
+
+  /** Example: ``(`post_id`, `name`, `email`)``. */
   fun getClauseWithoutOrder(): String = "(${columns.joinToString { it.toStringWithoutOrder() }})"
 
-  /** Example: ``(`post_id` DESC,`name` ASC,`email`)``. */
+  /** Example: ``(`post_id` DESC, `name` ASC, `email`)``. */
   override fun getClause(): String = "(${columns.joinToString()})"
 
   /** Adds another [IndexedColumnGroup] to the end of this [IndexedColumnGroup]. */
