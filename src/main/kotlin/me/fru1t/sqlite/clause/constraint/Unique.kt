@@ -1,7 +1,7 @@
 package me.fru1t.sqlite.clause.constraint
 
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.clause.constraint.resolutionstrategy.OnConflict
+import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict
 import me.fru1t.sqlite.getSqlName
 import java.util.Arrays
 import kotlin.reflect.KProperty1
@@ -110,7 +110,7 @@ data class Unique<T : TableColumns<T>>(
      * the specified [onConflict] resolution strategy.
      */
     fun <T : TableColumns<T>> of(
-        onConflict: OnConflict = OnConflict.ABORT, vararg columns: KProperty1<T, *>) : Unique<T> {
+        onConflict: OnConflict = OnConflict.DEFAULT, vararg columns: KProperty1<T, *>) : Unique<T> {
       return Unique(columns, onConflict)
     }
   }

@@ -2,7 +2,7 @@ package me.fru1t.sqlite.clause.constraint
 
 import me.fru1t.sqlite.clause.Constraint
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.clause.constraint.resolutionstrategy.OnForeignKeyConflict
+import me.fru1t.sqlite.clause.resolutionstrategy.OnForeignKeyConflict
 import me.fru1t.sqlite.getSqlName
 import me.fru1t.sqlite.getTable
 import kotlin.reflect.KClass
@@ -10,9 +10,9 @@ import kotlin.reflect.KProperty1
 
 /**
  * Creates a [ForeignKey] reference from the calling column to the [referenceColumn]. This method
- * defaults the [ForeignKey.onUpdate] and [ForeignKey.onDelete] [OnForeignKeyConflict] values to the
- * Sqlite default of [OnForeignKeyConflict.NO_ACTION]. See also [ForeignKey.onUpdate] and
- * [ForeignKey.onDelete] to specify on foreign key conflict values.
+ * defaults the [ForeignKey.onUpdate] and [ForeignKey.onDelete] [OnForeignKeyConflict] values to
+ * [OnForeignKeyConflict.DEFAULT]. See also [ForeignKey.onUpdate] and [ForeignKey.onDelete] to
+ * specify on foreign key conflict values.
  *
  * See [ForeignKey] for example usage.
  */
@@ -21,8 +21,8 @@ infix fun <L : TableColumns<L>, F : TableColumns<F>, T : Any> KProperty1<L, T>.r
   return ForeignKey(
       this,
       referenceColumn,
-      OnForeignKeyConflict.NO_ACTION,
-      OnForeignKeyConflict.NO_ACTION)
+      OnForeignKeyConflict.DEFAULT,
+      OnForeignKeyConflict.DEFAULT)
 }
 
 /**

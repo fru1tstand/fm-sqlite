@@ -1,4 +1,4 @@
-package me.fru1t.sqlite.clause.constraint.resolutionstrategy
+package me.fru1t.sqlite.clause.resolutionstrategy
 
 import me.fru1t.sqlite.Clause
 import me.fru1t.sqlite.clause.constraint.Check
@@ -81,15 +81,15 @@ enum class OnConflict(private val sqlName: String) : Clause {
    */
   REPLACE("REPLACE");
 
-  /** Example: `ON CONFLICT ABORT`. */
-  override fun getClause(): String{
-    return SQL_CLAUSE.format(sqlName)
-  }
-
   companion object {
     private const val SQL_CLAUSE = "ON CONFLICT %s"
 
     /** Alias of [OnConflict.ABORT]. */
     val DEFAULT = OnConflict.ABORT
+  }
+
+  /** Example: `ON CONFLICT ABORT`. */
+  override fun getClause(): String{
+    return SQL_CLAUSE.format(sqlName)
   }
 }

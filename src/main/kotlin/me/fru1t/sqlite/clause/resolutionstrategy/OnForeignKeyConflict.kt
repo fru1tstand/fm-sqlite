@@ -1,4 +1,4 @@
-package me.fru1t.sqlite.clause.constraint.resolutionstrategy
+package me.fru1t.sqlite.clause.resolutionstrategy
 
 import me.fru1t.sqlite.clause.constraint.ForeignKey
 
@@ -52,6 +52,14 @@ enum class OnForeignKeyConflict(private val sqlName: String) {
    */
   SET_DEFAULT("SET DEFAULT");
 
+  companion object {
+    private const val ON_UPDATE_SQL_CLAUSE = "ON UPDATE %s"
+    private const val ON_DELETE_SQL_CLAUSE = "ON DELETE %s"
+
+    /** Alias of [OnForeignKeyConflict.NO_ACTION]. */
+    val DEFAULT = OnForeignKeyConflict.NO_ACTION
+  }
+
   /** Returns the SQL `ON UPDATE` clause as a [String]. */
   fun getOnUpdateClause(): String {
     return ON_UPDATE_SQL_CLAUSE.format(sqlName)
@@ -60,10 +68,5 @@ enum class OnForeignKeyConflict(private val sqlName: String) {
   /** Returns the SQL `ON DELETE` clause as a [String]. */
   fun getOnDeleteClause(): String {
     return ON_DELETE_SQL_CLAUSE.format(sqlName)
-  }
-
-  companion object {
-    private const val ON_UPDATE_SQL_CLAUSE = "ON UPDATE %s"
-    private const val ON_DELETE_SQL_CLAUSE = "ON DELETE %s"
   }
 }

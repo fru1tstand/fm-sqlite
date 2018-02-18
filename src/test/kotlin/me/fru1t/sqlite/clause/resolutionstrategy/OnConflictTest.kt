@@ -1,4 +1,4 @@
-package me.fru1t.sqlite.clause.constraint.resolutionstrategy
+package me.fru1t.sqlite.clause.resolutionstrategy
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
