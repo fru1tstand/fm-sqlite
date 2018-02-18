@@ -4,7 +4,9 @@ import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.clause.Constraint
 import me.fru1t.sqlite.clause.IndexedColumnGroup
+import me.fru1t.sqlite.clause.constraint.ForeignKey
 import me.fru1t.sqlite.clause.constraint.PrimaryKey
+import me.fru1t.sqlite.clause.constraint.Unique
 import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
@@ -78,7 +80,31 @@ class CreateTable<T : TableColumns<T>> private constructor(
       return this
     }
 
-    /** Add a single constraint to this [CreateTable.Builder]. */
+    /**
+     * Add a single constraint to this [CreateTable.Builder].
+     *
+     * Code snippet for examples:
+     * ```
+     * data class Table(val a: Int, val b: Int) : TableColumns<Table>()
+     * val builder = CreateTable.from(Table::class)
+     * ```
+     *
+     * Example [ForeignKey] constraint:
+     * ```
+     * data class ParentTable(val a: Int) : TableColumns<ParentTable>()
+     * builder.constraint(Table::b references ParentTable::a onUpdate RESTRICT onDelete RESTRICT)
+     * ```
+     *
+     * Example [Unique] constraint:
+     * ```
+     * builder.constraint(Unique from (Table::a and Table::b) onConflict ROLLBACK)
+     * ```
+     *
+     * Example [Check] constraint:
+     * ```
+     * builder.constraint("ck_greater_than_30" checks "`${Table::a.getSqlName()}` > 30")
+     * ```
+     */
     fun constraint(constraint: Constraint<T>): Builder<T> {
       constraints.add(constraint)
       return this

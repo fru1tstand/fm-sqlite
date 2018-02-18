@@ -2,77 +2,52 @@ package me.fru1t.sqlite.clause.constraint
 
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.TableColumns
+import me.fru1t.sqlite.clause.IndexedColumnGroup
+import me.fru1t.sqlite.clause.and
 import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict
+import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict.FAIL
+import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict.ROLLBACK
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class UniqueTest {
-  @Test
-  fun of() {
-    val unique = Unique.of(OnConflict.REPLACE, ExampleTable::field, ExampleTable::field2)
-    assertThat(unique.columns).asList().containsExactly(ExampleTable::field, ExampleTable::field2)
-    assertThat(unique.onConflict).isEqualTo(OnConflict.REPLACE)
+  private lateinit var unique: Unique<UniqueTestTable>
+
+  @BeforeEach
+  fun setUp() {
+    unique = Unique from (UniqueTestTable::a and UniqueTestTable::b) onConflict ROLLBACK
   }
 
   @Test
-  fun getConstraintClause() {
-    val unique = Unique(arrayOf(ExampleTable::field, ExampleTable::field2), OnConflict.ABORT)
-    assertThat(unique.getConstraintClause())
-        .isEqualTo("CONSTRAINT uq_field_field2 UNIQUE (`field`,`field2`) ON CONFLICT ABORT")
+  fun from_indexedColumnGroup() {
+    val result = Unique from (UniqueTestTable::a and UniqueTestTable::b)
+    assertThat(result.columnGroup).isEqualTo(UniqueTestTable::a and UniqueTestTable::b)
+    assertThat(result.onConflict).isEqualTo(OnConflict.DEFAULT)
   }
 
   @Test
-  fun getConstraintClause_noColumns() {
-    val unique = Unique<ExampleTable>(emptyArray(), OnConflict.IGNORE)
-    assertThat(unique.getConstraintClause()).isEmpty()
+  fun from_kProperty1() {
+    val result = Unique from UniqueTestTable::a
+    assertThat(result.columnGroup).isEqualTo(IndexedColumnGroup(UniqueTestTable::a))
+    assertThat(result.onConflict).isEqualTo(OnConflict.DEFAULT)
+  }
+
+  @Test
+  fun onConflict() {
+    val result = unique onConflict FAIL
+    assertThat(result.onConflict).isEqualTo(FAIL)
+  }
+
+  @Test
+  fun getClause() {
+    assertThat(unique.getClause())
+        .isEqualTo("CONSTRAINT `uq_a_b` UNIQUE (`a` ASC, `b` ASC) ON CONFLICT ROLLBACK")
   }
 
   @Test
   fun getConstraintName() {
-    val unique = Unique(arrayOf(ExampleTable::field, ExampleTable::field2), OnConflict.ABORT)
-    assertThat(unique.getConstraintName()).isEqualTo("uq_field_field2")
-  }
-
-  @Test
-  fun equals_sameInstance() {
-    val unique = Unique(arrayOf(ExampleTable::field, ExampleTable::field2), OnConflict.ABORT)
-    assertThat(unique == unique).isTrue()
-  }
-
-  @Test
-  fun equals_differentClass() {
-    val unique = Unique(arrayOf(ExampleTable::field, ExampleTable::field2), OnConflict.ABORT)
-    val other = arrayOf(ExampleTable::field, ExampleTable::field2)
-    @Suppress("ReplaceCallWithComparison")
-    assertThat(unique.equals(other)).isFalse()
-  }
-
-  @Test
-  fun equals_differentColumns() {
-    val unique = Unique(arrayOf(ExampleTable::field, ExampleTable::field2), OnConflict.ABORT)
-    val otherUnique = Unique(arrayOf(ExampleTable::field), OnConflict.ABORT)
-    assertThat(unique == otherUnique).isFalse()
-  }
-
-  @Test
-  fun equals_differentOnConflict() {
-    val unique = Unique(arrayOf(ExampleTable::field, ExampleTable::field2), OnConflict.ABORT)
-    val otherUnique = Unique(arrayOf(ExampleTable::field, ExampleTable::field2), OnConflict.IGNORE)
-    assertThat(unique == otherUnique).isFalse()
-  }
-
-  @Test
-  fun equals() {
-    val unique = Unique(arrayOf(ExampleTable::field, ExampleTable::field2), OnConflict.ABORT)
-    val otherUnique = Unique(arrayOf(ExampleTable::field, ExampleTable::field2), OnConflict.ABORT)
-    assertThat(unique == otherUnique).isTrue()
-  }
-
-  @Test
-  fun hashCode_valid() {
-    val unique = Unique(arrayOf(ExampleTable::field, ExampleTable::field2), OnConflict.ABORT)
-    val otherUnique = Unique(arrayOf(ExampleTable::field, ExampleTable::field2), OnConflict.ABORT)
-    assertThat(unique.hashCode()).isEqualTo(otherUnique.hashCode())
+    assertThat(unique.getName()).isEqualTo("uq_a_b")
   }
 }
 
-private data class ExampleTable(val field: Int, val field2: Int) : TableColumns<ExampleTable>()
+private data class UniqueTestTable(val a: Int, val b: Int) : TableColumns<UniqueTestTable>()

@@ -1,117 +1,61 @@
 package me.fru1t.sqlite.clause.constraint
 
 import me.fru1t.sqlite.TableColumns
+import me.fru1t.sqlite.clause.Constraint
+import me.fru1t.sqlite.clause.IndexedColumnGroup
 import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict
 import me.fru1t.sqlite.getSqlName
-import java.util.Arrays
 import kotlin.reflect.KProperty1
 
 /**
- * Declares a [`UNIQUE`][Unique] constraint on a [Table]. [`UNIQUE`][Unique] constraints are
- * declared as fields within the companion object of a [Table] implementation. The name of the field
- * isn't used for anything, but it'd be nice to name them following standard convention:
- * `uq_<columns in this unique constraint>`.
+ * Represents a grouping of one or more columns whose concatenated values must be unique on the
+ * table. More technically, this represents the `UNIQUE` constraint on a `CREATE TABLE` statement.
+ * If one attempts to insert a row that violates this [Unique] constraint, the [onConflict]
+ * resolution strategy is followed.
  *
- * Use [Unique.of] to create instances of this class.
- *
- * Example usage:
- * ```
- * data class ExampleTable(
- *     @Column(TEXT) val username: String,
- *     @Column(TEXT) val email: String
- * ) extends TableColumns<ExampleTable>() {
- *   companion object {
- *     val UQ_USERNAME_EMAIL =
- *         Unique.of(OnConflict.ABORT, ExampleTable::username, ExampleTable::email)
- *   }
- * }
- * ```
- *
- *
- * Documentation from [https://www.sqlite.org/lang_createtable.html#constraints]:
- *
- * A [`UNIQUE`][Unique] constraint is similar to a [`PRIMARY KEY`][PrimaryKey] constraint, except
- * that a single table may have any number of [`UNIQUE`][Unique] constraints. For each
- * [`UNIQUE`][Unique] constraint on the table, each row must contain a unique combination of values
- * in the columns identified by the [`UNIQUE`][Unique] constraint. For the purposes of
- * [`UNIQUE`][Unique] constraints, `NULL` values are considered distinct from all other values,
- * including other `NULL`s. As with [`PRIMARY KEY`][PrimaryKey]s, a [`UNIQUE`][Unique]
- * table-constraint clause must contain only column names — the use of expressions in an
- * indexed-column of a [`UNIQUE`][Unique] table-constraint is not supported.
- *
- * In most cases, [`UNIQUE`][Unique] and [`PRIMARY KEY`][PrimaryKey] constraints are implemented by
- * creating a unique index in the database. (The exceptions are `INTEGER PRIMARY KEY` and
- * `PRIMARY KEY`s on `WITHOUT ROWID` tables.) Hence, the following schemas are logically equivalent:
- *  1. `CREATE TABLE t1(a, b UNIQUE);`
- *  2. `CREATE TABLE t1(a, b PRIMARY KEY);`
- *  3. `CREATE TABLE t1(a, b); CREATE UNIQUE INDEX t1b ON t1(b);`
+ * See [https://www.sqlite.org/lang_createtable.html#constraints] for official documentation.
  */
 data class Unique<T : TableColumns<T>>(
-    val columns: Array<out KProperty1<T, *>>, val onConflict: OnConflict) {
-  /**
-   * Returns the SQL clause to create this [Unique] constraint from a `CREATE TABLE` statement.
-   * Returns an empty string if no [columns] are passed.
-   */
-  fun getConstraintClause(): String {
-    if (columns.isEmpty()) {
-      return ""
-    }
+    val columnGroup: IndexedColumnGroup<T>, val onConflict: OnConflict) : Constraint<T> {
+  companion object {
+    private const val SQL_CLAUSE = "CONSTRAINT `%s` UNIQUE %s %s"
+    private const val CONSTRAINT_NAME = "uq_%s"
 
-    val flattenedColumnNames = StringBuilder()
-    columns.forEachIndexed {
-      index, column -> run {
-      if (index > 0) {
-        flattenedColumnNames.append(',')
-      }
-      flattenedColumnNames.append('`').append(column.getSqlName()).append('`')
-    }}
-    return SQL_CLAUSE.format(
-        getConstraintName(), flattenedColumnNames.toString(), onConflict.getClause())
+    /**
+     * Creates a [`UNIQUE`][Unique] constraint from a [columnGroup] using the
+     * [default][OnConflict.DEFAULT] [OnConflict] resolution strategy.
+     *
+     * Example usage: `Unique from (Table::a and (Table::b order DESC))`.
+     */
+    infix fun <T : TableColumns<T>> from(columnGroup: IndexedColumnGroup<T>): Unique<T> =
+      Unique(columnGroup, OnConflict.DEFAULT)
+
+    /**
+     * Creates a [`UNIQUE`][Unique] constraint from a single [column] using the
+     * [default][OnConflict.DEFAULT] [OnConflict] resolution strategy.
+     *
+     * Example usage: `Unique from Table::a`.
+     */
+    infix fun <T : TableColumns<T>> from(column: KProperty1<T, *>): Unique<T> =
+      Unique(IndexedColumnGroup(column), OnConflict.DEFAULT)
+  }
+
+  /** Specifies the [onConflict] resolution strategy for this [Unique] constraint. */
+  infix fun onConflict(onConflict: OnConflict): Unique<T> = copy(onConflict = onConflict)
+
+  /** Example: ``CONSTRAINT `uq_a_b` UNIQUE (`a` ASC, `b` ASC) ON CONFLICT ROLLBACK``. */
+  override fun getClause(): String {
+    return SQL_CLAUSE.format(getName(), columnGroup.getClause(), onConflict.getClause())
   }
 
   /**
    * Returns the proper name this [Unique] constraint should have within the database. This follows
    * the format `uq_<column names>`.
+   *
+   * Example: `uq_id_post_id`.
    */
-  fun getConstraintName(): String {
-    val name = StringBuilder()
-    columns.forEachIndexed {
-      index, column -> run {
-      if (index > 0) {
-        name.append('_')
-      }
-      name.append(column.getSqlName())
-    }}
-    return CONSTRAINT_NAME.format(name.toString())
-  }
-
-  override fun equals(other: Any?): Boolean {
-    // Generated by IntelliJ
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-    other as Unique<*>
-    if (!Arrays.equals(columns, other.columns)) return false
-    if (onConflict != other.onConflict) return false
-    return true
-  }
-
-  override fun hashCode(): Int {
-    var result = Arrays.hashCode(columns)
-    result = 31 * result + onConflict.hashCode()
-    return result
-  }
-
-  companion object {
-    private const val SQL_CLAUSE = "CONSTRAINT %s UNIQUE (%s) %s"
-    private const val CONSTRAINT_NAME = "uq_%s"
-
-    /**
-     * Creates a [Unique] constraint for [Table] ([T]) consisting of [columns] and optionally using
-     * the specified [onConflict] resolution strategy.
-     */
-    fun <T : TableColumns<T>> of(
-        onConflict: OnConflict = OnConflict.DEFAULT, vararg columns: KProperty1<T, *>) : Unique<T> {
-      return Unique(columns, onConflict)
-    }
+  fun getName(): String {
+    return CONSTRAINT_NAME.format(
+        columnGroup.columns.joinToString(separator = "_", transform = { it.column.getSqlName() }))
   }
 }
