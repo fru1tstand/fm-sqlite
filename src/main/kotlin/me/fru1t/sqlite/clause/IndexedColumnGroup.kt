@@ -6,34 +6,36 @@ import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.getSqlName
 import kotlin.reflect.KProperty1
 
-/** Creates an [IndexedColumnGroup] with a single [ordered][Order] [IndexedColumn]. */
+/** Creates an [IndexedColumnGroup] with a single column given in [order][Order]. */
 infix fun <T : TableColumns<T>> KProperty1<T, *>.order(order: Order): IndexedColumnGroup<T> =
-  IndexedColumnGroup(IndexedColumn(this, order))
+  IndexedColumnGroup(listOf(IndexedColumn(this, order)))
 
-/** Creates an [IndexedColumnGroup] by appending the [nextColumn] to this column. */
+/**
+ * Creates an [IndexedColumnGroup] by appending the [nextColumn] to this column giving both the
+ * [default][Order.DEFAULT] [Order].
+ */
 infix fun <T : TableColumns<T>> KProperty1<T, *>.and(
     nextColumn: KProperty1<T, *>): IndexedColumnGroup<T> =
-  IndexedColumnGroup(listOf(IndexedColumn(this), IndexedColumn(nextColumn)))
+  IndexedColumnGroup(
+      listOf(IndexedColumn(this, Order.DEFAULT), IndexedColumn(nextColumn, Order.DEFAULT)))
 
-/** Creates an [IndexedColumnGroup] by prepending this column to the [existingGroup]. */
+/**
+ * Creates an [IndexedColumnGroup] by prepending this column with settings the
+ * [default][Order.DEFAULT] [Order] to the [existingGroup].
+ */
 infix fun <T : TableColumns<T>> KProperty1<T, *>.and(
     existingGroup: IndexedColumnGroup<T>): IndexedColumnGroup<T> =
-  IndexedColumnGroup(listOf(IndexedColumn(this), *existingGroup.columns.toTypedArray()))
+  IndexedColumnGroup(
+      listOf(IndexedColumn(this, Order.DEFAULT), *existingGroup.columns.toTypedArray()))
 
 /**
  * A simple container class that represents a single
- * [`indexed-column`][https://www.sqlite.org/syntax/indexed-column.html]. This data class holds a
- * [column] and optionally an [order].
+ * [`indexed-column`][https://www.sqlite.org/syntax/indexed-column.html], that is, a [column] and
+ * an [order].
  */
-data class IndexedColumn<T : TableColumns<T>>(
-    val column: KProperty1<T, *>, val order: Order? = null) {
-
-  /** Outputs the [column] sql name. Example: `` `foo` ``. */
-  fun toStringWithoutOrder(): String = "`${column.getSqlName()}`"
-
+data class IndexedColumn<T : TableColumns<T>>(val column: KProperty1<T, *>, val order: Order) {
   /** Outputs the [column] sql name and [order] if available. Example: `` `foo` ASC ``. */
-  override fun toString(): String =
-    "`${column.getSqlName()}`" + (order?.let { " ${it.getClause()}" } ?: "")
+  override fun toString(): String = "`${column.getSqlName()}` ${order.getClause()}"
 }
 
 /**
@@ -45,11 +47,12 @@ data class IndexedColumn<T : TableColumns<T>>(
  * @throws LocalSqliteException if no columns are given to the group
  */
 data class IndexedColumnGroup<T : TableColumns<T>>(val columns: List<IndexedColumn<T>>) : Clause {
-  /** Creates an [IndexedColumnGroup] from an initial column. */
-  constructor(initialColumn: KProperty1<T, *>) : this(IndexedColumn(initialColumn))
-
-  /** Creates an [IndexedColumnGroup] from an initial [IndexedColumn]. */
-  constructor(initialColumn: IndexedColumn<T>) : this(listOf(initialColumn))
+  /**
+   * Creates an [IndexedColumnGroup] from an initial column with the [default][Order.DEFAULT]
+   * [Order].
+   */
+  constructor(initialColumn: KProperty1<T, *>) :
+      this(listOf(IndexedColumn(initialColumn, Order.DEFAULT)))
 
   init {
     if (columns.isEmpty()) {
@@ -57,17 +60,20 @@ data class IndexedColumnGroup<T : TableColumns<T>>(val columns: List<IndexedColu
     }
   }
 
-  /** Example: ``(`post_id`, `name`, `email`)``. */
-  fun getClauseWithoutOrder(): String = "(${columns.joinToString { it.toStringWithoutOrder() }})"
+  /** Example: ``(`post_id` DESC, `name` ASC, `email` DESC)``. */
+  override fun getClause(): String = "(${getClauseWithoutGrouping()})"
 
-  /** Example: ``(`post_id` DESC, `name` ASC, `email`)``. */
-  override fun getClause(): String = "(${columns.joinToString()})"
+  /** Example: `` `post_id` DESC, `name` ASC, `email` DESC``. */
+  fun getClauseWithoutGrouping(): String = columns.joinToString()
 
   /** Adds another [IndexedColumnGroup] to the end of this [IndexedColumnGroup]. */
   infix fun and(indexedColumnGroup: IndexedColumnGroup<T>): IndexedColumnGroup<T> =
     copy(columns = listOf(*columns.toTypedArray(), *indexedColumnGroup.columns.toTypedArray()))
 
-  /** Adds a [column] to the end of this [IndexedColumnGroup]. */
+  /**
+   * Adds a [column] with the [default][Order.DEFAULT] [Order] to the end of this
+   * [IndexedColumnGroup].
+   */
   infix fun and(column: KProperty1<T, *>): IndexedColumnGroup<T> =
-    copy(columns = listOf(*columns.toTypedArray(), IndexedColumn(column)))
+    copy(columns = listOf(*columns.toTypedArray(), IndexedColumn(column, Order.DEFAULT)))
 }

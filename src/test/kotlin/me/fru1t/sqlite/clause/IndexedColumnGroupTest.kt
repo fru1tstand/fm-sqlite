@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.clause.Order.DESC
 import me.fru1t.sqlite.TableColumns
+import me.fru1t.sqlite.clause.Order.ASC
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,33 +21,24 @@ class FileTest {
   @Test
   fun kProperty1_and_kProperty1() {
     val result = Table::a and Table::b
-    assertThat(result.columns).containsExactly(IndexedColumn(Table::a), IndexedColumn(Table::b))
+    assertThat(result.columns)
+        .containsExactly(
+            IndexedColumn(Table::a, Order.DEFAULT), IndexedColumn(Table::b, Order.DEFAULT))
   }
 
   @Test
   fun kProperty1_and_indexedColumn() {
     val result = Table::a and (Table::b order DESC)
     assertThat(result.columns)
-        .containsExactly(IndexedColumn(Table::a), IndexedColumn(Table::b, DESC))
+        .containsExactly(IndexedColumn(Table::a, Order.DEFAULT), IndexedColumn(Table::b, DESC))
   }
 }
 
 class IndexedColumnTest {
-  private lateinit var indexedColumn: IndexedColumn<Table>
-
-  @BeforeEach
-  fun setUp() {
-    indexedColumn = IndexedColumn(Table::a, DESC)
-  }
-
   @Test
   fun overrideToString() {
-    assertThat(indexedColumn.toString()).isEqualTo("`a` DESC")
-  }
-
-  @Test
-  fun toStringWithoutOrder() {
-    assertThat(indexedColumn.toStringWithoutOrder()).isEqualTo("`a`")
+    val result = IndexedColumn(Table::a, DESC).toString()
+    assertThat(result).isEqualTo("`a` DESC")
   }
 }
 
@@ -56,19 +48,14 @@ class IndexedColumnGroupTest {
   @BeforeEach
   fun setUp() {
     indexedColumnGroup =
-        IndexedColumnGroup(listOf(IndexedColumn(Table::a), IndexedColumn(Table::b, DESC)))
+        IndexedColumnGroup(
+            listOf(IndexedColumn(Table::a, Order.DEFAULT), IndexedColumn(Table::b, ASC)))
   }
 
   @Test
   fun constructor_kProperty1() {
     val result = IndexedColumnGroup(Table::a)
-    assertThat(result.columns).containsExactly(IndexedColumn(Table::a))
-  }
-
-  @Test
-  fun constructor_indexedColumn() {
-    val result = IndexedColumnGroup(IndexedColumn(Table::a, DESC))
-    assertThat(result.columns).containsExactly(IndexedColumn(Table::a, DESC))
+    assertThat(result.columns).containsExactly(IndexedColumn(Table::a, Order.DEFAULT))
   }
 
   @Test
@@ -82,21 +69,23 @@ class IndexedColumnGroupTest {
   }
 
   @Test
-  fun getClauseWithoutOrder() {
-    assertThat(indexedColumnGroup.getClauseWithoutOrder()).isEqualTo("(`a`, `b`)")
-  }
-
-  @Test
   fun getClause() {
-    assertThat(indexedColumnGroup.getClause()).isEqualTo("(`a`, `b` DESC)")
+    assertThat(indexedColumnGroup.getClause()).isEqualTo("(`a` ASC, `b` ASC)")
   }
 
   @Test
-  fun and_indexedColumn() {
+  fun getClauseWithoutGrouping() {
+    assertThat(indexedColumnGroup.getClauseWithoutGrouping()).isEqualTo("`a` ASC, `b` ASC")
+  }
+
+  @Test
+  fun and_indexedColumnGroup() {
     val result = indexedColumnGroup and (Table::c order DESC)
     assertThat(result.columns)
         .containsExactly(
-            IndexedColumn(Table::a), IndexedColumn(Table::b, DESC), IndexedColumn(Table::c, DESC))
+            IndexedColumn(Table::a, Order.DEFAULT),
+            IndexedColumn(Table::b, ASC),
+            IndexedColumn(Table::c, DESC))
   }
 
   @Test
@@ -104,7 +93,9 @@ class IndexedColumnGroupTest {
     val result = indexedColumnGroup and Table::c
     assertThat(result.columns)
         .containsExactly(
-            IndexedColumn(Table::a), IndexedColumn(Table::b, DESC), IndexedColumn(Table::c))
+            IndexedColumn(Table::a, Order.DEFAULT),
+            IndexedColumn(Table::b, ASC),
+            IndexedColumn(Table::c, Order.DEFAULT))
   }
 }
 
