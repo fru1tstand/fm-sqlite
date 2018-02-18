@@ -3,6 +3,9 @@ package me.fru1t.sqlite.statement
 import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.clause.Constraint
+import me.fru1t.sqlite.clause.IndexedColumnGroup
+import me.fru1t.sqlite.clause.constraint.PrimaryKey
+import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
@@ -12,14 +15,21 @@ import kotlin.reflect.full.primaryConstructor
 /**
  * Represents an Sqlite table. This class is meant to hold the definition of a table in a database.
  *
- * Use [CreateTable.of] to create instances of the builder class.
+ * Use [CreateTable.from] to create instances of the builder class.
  */
 class CreateTable<T : TableColumns<T>> private constructor(
     val columnsClass: KClass<T>,
     val withoutRowId: Boolean,
     val constraints: List<Constraint<T>>,
     val defaults: Map<KParameter, Any>,
+    val primaryKey: PrimaryKey<T>?,
     val autoIncrementColumn: KParameter?) {
+  companion object {
+    /** Alias for creating new [CreateTable.Builder]s. */
+    fun <T : TableColumns<T>> from(columnsClass: KClass<T>): Builder<T> {
+      return Builder(columnsClass)
+    }
+  }
 
   /**
    * A builder class for [CreateTable] which verifies consistency on [build].
@@ -39,6 +49,9 @@ class CreateTable<T : TableColumns<T>> private constructor(
 
     /** Stores the constraints on the table such as `FOREIGN KEY`, `UNIQUE`, etc. */
     var constraints: MutableList<Constraint<T>> = ArrayList()
+
+    /** The column(s) for the `PRIMARY KEY` constraint, or null to omit the clause. */
+    var primaryKey: PrimaryKey<T>? = null
 
     /** Stores the column to mark as `AUTOINCREMENT`. */
     private var autoIncrementColumn: KParameter? = null
@@ -72,6 +85,64 @@ class CreateTable<T : TableColumns<T>> private constructor(
     }
 
     /**
+     * Set the `PRIMARY KEY` for this [CreateTable] statement. If a primary key is not specified or
+     * passed `null`, the clause will be omitted from the `CREATE TABLE` statement.
+     *
+     * Example usage:
+     * ```
+     * data class Table(val a: Int, val b: String) : TableColumns<Table>()
+     * val createTable =
+     *   CreateTable.from(Table::class)
+     *       .primaryKey(Table::a and Table::b onConflict FAIL)
+     *       .build()
+     * ```
+     *
+     * See [`PRIMARY KEY`][https://www.sqlite.org/lang_createtable.html#constraints].
+     */
+    fun primaryKey(primaryKey: PrimaryKey<T>?): Builder<T> {
+      this.primaryKey = primaryKey
+      return this
+    }
+
+    /**
+     * Set the `PRIMARY KEY` for this [CreateTable] statement with the columns in [columnGroup]
+     * using the [default][OnConflict.DEFAULT] [OnConflict] value. If the primary key is not
+     * specified or passed `null`, the clause will be omitted from the `CREATE TABLE` statement.
+     *
+     * Example usage:
+     * ```
+     * data class Table(val a: Int, val b: String) : TableColumns<Table>()
+     * val createTable =
+     *   CreateTable.from(Table::class)
+     *       .primaryKey(Table::a and Table::b)
+     *       .build()
+     * ```
+     *
+     * See [`PRIMARY KEY`][https://www.sqlite.org/lang_createtable.html#constraints].
+     */
+    fun primaryKey(columnGroup: IndexedColumnGroup<T>): Builder<T> =
+      primaryKey(PrimaryKey(columnGroup, OnConflict.DEFAULT))
+
+    /**
+     * Set the `PRIMARY KEY` for this [CreateTable] statement with the [column] provided using the
+     * [default][OnConflict.DEFAULT] [OnConflict] value. If the primary key is not specified or
+     * passed `null`, the clause will be omitted from the `CREATE TABLE` statement.
+     *
+     * Example usage:
+     * ```
+     * data class Table(val a: Int) : TableColumns<Table>()
+     * val createTable =
+     *   CreateTable.from(Table::class)
+     *       .primaryKey(Table::a)
+     *       .build()
+     * ```
+     *
+     * See [`PRIMARY KEY`][https://www.sqlite.org/lang_createtable.html#constraints].
+     */
+    fun primaryKey(column: KProperty1<T, *>): Builder<T> =
+      primaryKey(PrimaryKey(IndexedColumnGroup(column), OnConflict.DEFAULT))
+
+    /**
      * Sets a [column] to use `AUTOINCREMENT`. Please read
      * [the official documentation][http://www.sqlite.org/autoinc.html] before opting to use this.
      * In most cases you don't need to, and instead, you can rely on the `ROWID` column.
@@ -81,7 +152,8 @@ class CreateTable<T : TableColumns<T>> private constructor(
     fun autoIncrement(column: KProperty1<T, Int>): Builder<T> {
       if (autoIncrementColumn != null) {
         throw LocalSqliteException(
-            "${columnsClass.simpleName} already has an autoincrement column " + "'${autoIncrementColumn!!.name}', cannot set autoincrement on '${column.name}'")
+            "${columnsClass.simpleName} already has an autoincrement column " +
+                "'${autoIncrementColumn!!.name}', cannot set autoincrement on '${column.name}'")
       }
       autoIncrementColumn = columnsClass.primaryConstructor!!.findParameterByName(column.name)
       return this
@@ -114,13 +186,15 @@ class CreateTable<T : TableColumns<T>> private constructor(
       // Must be optional
       if (!columnAsKParameter.isOptional) {
         throw LocalSqliteException(
-            "${columnsClass.simpleName}.${column.name} must be an optional parameter to allow " + "default values.")
+            "${columnsClass.simpleName}.${column.name} must be an optional parameter to allow " +
+                "default values.")
       }
 
       // Must not exist already
       defaults.putIfAbsent(columnAsKParameter, default)?.let {
         throw LocalSqliteException(
-            "${columnsClass.simpleName}.${column.name} already has the default value of '$it', " + "cannot set it to '$default'")
+            "${columnsClass.simpleName}.${column.name} already has the default value from '$it', " +
+                "cannot set it to '$default'")
       }
 
       return this
@@ -133,23 +207,18 @@ class CreateTable<T : TableColumns<T>> private constructor(
       optionalColumns.forEach {
         if (!defaults.containsKey(it)) {
           throw LocalSqliteException(
-              "Optional parameter ${columnsClass.simpleName}.${it.name} must have its default " + "value passed into the table definition via #default.")
+              "Optional parameter ${columnsClass.simpleName}.${it.name} must have its default " +
+                  "value passed into the table definition via #default.")
         }
       }
 
       return CreateTable(
-          columnsClass,
-          withoutRowId,
-          constraints,
-          defaults,
-          autoIncrementColumn)
-    }
-  }
-
-  companion object {
-    /** Alias for creating new [CreateTable.Builder]s. */
-    fun <T : TableColumns<T>> of(columnsClass: KClass<T>): Builder<T> {
-      return Builder(columnsClass)
+          columnsClass = columnsClass,
+          withoutRowId = withoutRowId,
+          constraints = constraints,
+          defaults = defaults,
+          autoIncrementColumn = autoIncrementColumn,
+          primaryKey = primaryKey)
     }
   }
 }

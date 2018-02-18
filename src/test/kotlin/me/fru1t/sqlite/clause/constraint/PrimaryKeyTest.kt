@@ -2,62 +2,47 @@ package me.fru1t.sqlite.clause.constraint
 
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.TableColumns
+import me.fru1t.sqlite.clause.IndexedColumnGroup
+import me.fru1t.sqlite.clause.Order.DESC
+import me.fru1t.sqlite.clause.and
+import me.fru1t.sqlite.clause.order
+import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict.Companion.DEFAULT
+import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict.FAIL
+import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict.REPLACE
+import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict.ROLLBACK
 import org.junit.jupiter.api.Test
 
-class PrimaryKeyTest {
+class PrimaryKeyFileTest {
   @Test
-  fun getConstraintClause() {
-    val primaryKey = PrimaryKey(arrayOf(TestTable::param1, TestTable::param2))
-    assertThat(primaryKey.getConstraintClause())
-        .isEqualTo("PRIMARY KEY(`param1`,`param2`)")
+  fun indexedColumnGroup_onConflict() {
+    val result = (PrimaryKeyTestTable::a and PrimaryKeyTestTable::b) onConflict REPLACE
+    assertThat(result.columnGroup).isEqualTo(PrimaryKeyTestTable::a and PrimaryKeyTestTable::b)
+    assertThat(result.onConflict).isEqualTo(REPLACE)
   }
 
   @Test
-  fun getConstraintClause_empty() {
-    val primaryKey = PrimaryKey<TestTable>(emptyArray())
-    assertThat(primaryKey.getConstraintClause()).isEmpty()
-  }
-
-  @Test
-  fun of() {
-    val result = PrimaryKey.of(TestTable::param1, TestTable::param2)
-    assertThat(result.columns).asList().containsExactly(TestTable::param1, TestTable::param2)
-  }
-
-  @Test
-  fun equals_valid() {
-    val primaryKey = PrimaryKey(arrayOf(TestTable::param1, TestTable::param2))
-    val otherPrimaryKey = PrimaryKey(arrayOf(TestTable::param1, TestTable::param2))
-    assertThat(primaryKey == otherPrimaryKey).isTrue()
-  }
-
-  @Test
-  fun equals_sameInstance() {
-    val primaryKey = PrimaryKey(arrayOf(TestTable::param1, TestTable::param2))
-    assertThat(primaryKey == primaryKey).isTrue()
-  }
-
-  @Test
-  fun equals_notSameClass() {
-    val primaryKey = PrimaryKey(arrayOf(TestTable::param1, TestTable::param2))
-    val other = arrayOf(TestTable::param1, TestTable::param2)
-    @Suppress("ReplaceCallWithComparison")
-    assertThat(primaryKey.equals(other)).isFalse()
-  }
-
-  @Test
-  fun equals_differentColumns() {
-    val primaryKey = PrimaryKey(arrayOf(TestTable::param1, TestTable::param2))
-    val otherPrimaryKey = PrimaryKey(arrayOf(TestTable::param1))
-    assertThat(primaryKey == otherPrimaryKey).isFalse()
-  }
-
-  @Test
-  fun hasCode_valid() {
-    val primaryKey = PrimaryKey(arrayOf(TestTable::param1, TestTable::param2))
-    val otherPrimaryKey = PrimaryKey(arrayOf(TestTable::param1, TestTable::param2))
-    assertThat(primaryKey.hashCode()).isEqualTo(otherPrimaryKey.hashCode())
+  fun kProperty1_onConflict() {
+    val result = PrimaryKeyTestTable::a onConflict FAIL
+    assertThat(result.columnGroup).isEqualTo(IndexedColumnGroup(PrimaryKeyTestTable::a))
+    assertThat(result.onConflict).isEqualTo(FAIL)
   }
 }
 
-private data class TestTable(val param1: Int, val param2: Int) : TableColumns<TestTable>()
+class PrimaryKeyTest {
+  @Test
+  fun constructor_kProperty1() {
+    val result = PrimaryKey(PrimaryKeyTestTable::b, DEFAULT)
+    assertThat(result.columnGroup).isEqualTo(IndexedColumnGroup(PrimaryKeyTestTable::b))
+    assertThat(result.onConflict).isEqualTo(DEFAULT)
+  }
+
+  @Test
+  fun getClause() {
+    val primaryKey =
+      (PrimaryKeyTestTable::a and (PrimaryKeyTestTable::b order DESC) onConflict ROLLBACK)
+    assertThat(primaryKey.getClause())
+        .isEqualTo("CONSTRAINT PRIMARY KEY(`a` ASC, `b` DESC) ON CONFLICT ROLLBACK")
+  }
+}
+
+private data class PrimaryKeyTestTable(val a: Int, val b: Int) : TableColumns<PrimaryKeyTestTable>()
