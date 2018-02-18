@@ -1,8 +1,8 @@
 package me.fru1t.sqlite.clause.constraint
 
-import me.fru1t.sqlite.DataType
-import me.fru1t.sqlite.DatabaseConstants
+import me.fru1t.sqlite.clause.DataType
 import me.fru1t.sqlite.LocalSqliteException
+import me.fru1t.sqlite.Sqlite
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.clause.Constraint
 
@@ -51,10 +51,10 @@ data class Check<T : TableColumns<T>>(
   }
 
   init {
-    if (name?.matches(DatabaseConstants.VALID_DATABASE_NAME_REGEX) == false) {
+    if (name?.matches(Sqlite.VALID_SQL_NAME_REGEX) == false) {
       throw LocalSqliteException(
           "Invalid check constraint name <`$name`>, it must follow the regex " +
-              DatabaseConstants.VALID_DATABASE_NAME_REGEX.pattern)
+              Sqlite.VALID_SQL_NAME_REGEX.pattern)
     }
     if (sqlLogicClause.isBlank()) {
       throw LocalSqliteException("Cannot have blank check constraints.")

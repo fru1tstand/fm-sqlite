@@ -2,7 +2,7 @@ package me.fru1t.sqlite.clause
 
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.LocalSqliteException
-import me.fru1t.sqlite.Order.DESC
+import me.fru1t.sqlite.clause.Order.DESC
 import me.fru1t.sqlite.TableColumns
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach

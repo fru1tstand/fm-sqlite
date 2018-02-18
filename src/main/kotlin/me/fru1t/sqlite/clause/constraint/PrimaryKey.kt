@@ -1,6 +1,6 @@
 package me.fru1t.sqlite.clause.constraint
 
-import me.fru1t.sqlite.DataType
+import me.fru1t.sqlite.clause.DataType
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.getSqlName
 import java.util.Arrays

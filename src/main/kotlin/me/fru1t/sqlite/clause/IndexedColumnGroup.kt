@@ -2,7 +2,6 @@ package me.fru1t.sqlite.clause
 
 import me.fru1t.sqlite.Clause
 import me.fru1t.sqlite.LocalSqliteException
-import me.fru1t.sqlite.Order
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.getSqlName
 import kotlin.reflect.KProperty1
@@ -34,7 +33,7 @@ data class IndexedColumn<T : TableColumns<T>>(
 
   /** Outputs the [column] sql name and [order] if available. Example: `` `foo` ASC ``. */
   override fun toString(): String =
-    "`${column.getSqlName()}`" + (order?.let { " ${it.value}" } ?: "")
+    "`${column.getSqlName()}`" + (order?.let { " ${it.getClause()}" } ?: "")
 }
 
 /**
