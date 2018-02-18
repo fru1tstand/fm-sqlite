@@ -1,6 +1,8 @@
-package me.fru1t.sqlite
+package me.fru1t.sqlite.statement
 
 import com.google.common.truth.Truth.assertThat
+import me.fru1t.sqlite.LocalSqliteException
+import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.clause.Constraint
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
@@ -8,17 +10,19 @@ import org.junit.jupiter.api.Test
 import kotlin.reflect.full.findParameterByName
 import kotlin.reflect.full.primaryConstructor
 
-class TableDefinitionTest {
-  private lateinit var builder: TableDefinition.Builder<Table>
+class CreateTableTest {
+  private lateinit var builder: CreateTable.Builder<Table>
 
   @BeforeEach
   fun setUp() {
-    builder = TableDefinition.Builder(Table::class).default(Table::default, Table.DEFAULT)
+    builder = CreateTable.Builder(Table::class).default(
+        Table::default,
+        Table.DEFAULT)
   }
 
   @Test
   fun of() {
-    val result = TableDefinition.of(Table::class)
+    val result = CreateTable.of(Table::class)
     assertThat(result.columnsClass).isEqualTo(Table::class)
   }
 
@@ -34,7 +38,7 @@ class TableDefinitionTest {
   @Test
   fun builder_notADataClass() {
     try {
-      TableDefinition.Builder(InvalidTable::class)
+      CreateTable.Builder(InvalidTable::class)
       fail<Unit>("Expecting LocalSqliteException for not passing a data class to the builder")
     } catch (e: LocalSqliteException) {
       assertThat(e).hasMessageThat().contains(InvalidTable::class.simpleName!!)
@@ -97,7 +101,9 @@ class TableDefinitionTest {
   fun builder_autoIncrement() {
     val result = builder.autoIncrement(Table::id).build()
     assertThat(result.autoIncrementColumn)
-        .isEqualTo(Table::class.primaryConstructor!!.findParameterByName(Table::id.name))
+        .isEqualTo(
+            Table::class.primaryConstructor!!.findParameterByName(
+                Table::id.name))
   }
 
   @Test
@@ -116,7 +122,7 @@ class TableDefinitionTest {
   @Test
   fun builder_build_noDefaultDefined() {
     try {
-      TableDefinition.Builder(Table::class).build()
+      CreateTable.Builder(Table::class).build()
       fail<Unit>("Expecting LocalSqliteException for no default for optional parameter")
     } catch (e: LocalSqliteException) {
       assertThat(e).hasMessageThat().contains(Table::default.name)

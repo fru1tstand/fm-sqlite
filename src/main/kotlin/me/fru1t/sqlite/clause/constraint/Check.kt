@@ -4,7 +4,6 @@ import me.fru1t.sqlite.DataType
 import me.fru1t.sqlite.DatabaseConstants
 import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.TableDefinition
 import me.fru1t.sqlite.clause.Constraint
 
 /**

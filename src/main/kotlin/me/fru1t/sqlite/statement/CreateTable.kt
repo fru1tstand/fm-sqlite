@@ -1,5 +1,7 @@
-package me.fru1t.sqlite
+package me.fru1t.sqlite.statement
 
+import me.fru1t.sqlite.LocalSqliteException
+import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.clause.Constraint
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
@@ -10,9 +12,9 @@ import kotlin.reflect.full.primaryConstructor
 /**
  * Represents an Sqlite table. This class is meant to hold the definition of a table in a database.
  *
- * Use [TableDefinition.of] to create instances of the builder class.
+ * Use [CreateTable.of] to create instances of the builder class.
  */
-class TableDefinition<T : TableColumns<T>> private constructor(
+class CreateTable<T : TableColumns<T>> private constructor(
     val columnsClass: KClass<T>,
     val withoutRowId: Boolean,
     val constraints: List<Constraint<T>>,
@@ -20,7 +22,7 @@ class TableDefinition<T : TableColumns<T>> private constructor(
     val autoIncrementColumn: KParameter?) {
 
   /**
-   * A builder class for [TableDefinition] which verifies consistency on [build].
+   * A builder class for [CreateTable] which verifies consistency on [build].
    *
    * [columnsClass] must be a data class with a primary constructor that represents the table's
    * columns. See [TableColumns] for details.
@@ -63,7 +65,7 @@ class TableDefinition<T : TableColumns<T>> private constructor(
       return this
     }
 
-    /** Add a single constraint to this [TableDefinition.Builder]. */
+    /** Add a single constraint to this [CreateTable.Builder]. */
     fun constraint(constraint: Constraint<T>): Builder<T> {
       constraints.add(constraint)
       return this
@@ -79,8 +81,7 @@ class TableDefinition<T : TableColumns<T>> private constructor(
     fun autoIncrement(column: KProperty1<T, Int>): Builder<T> {
       if (autoIncrementColumn != null) {
         throw LocalSqliteException(
-            "${columnsClass.simpleName} already has an autoincrement column " +
-                "'${autoIncrementColumn!!.name}', cannot set autoincrement on '${column.name}'")
+            "${columnsClass.simpleName} already has an autoincrement column " + "'${autoIncrementColumn!!.name}', cannot set autoincrement on '${column.name}'")
       }
       autoIncrementColumn = columnsClass.primaryConstructor!!.findParameterByName(column.name)
       return this
@@ -97,7 +98,7 @@ class TableDefinition<T : TableColumns<T>> private constructor(
      * data class ExampleTable(val id: Int, val value: Int = VALUE) : TableColumns<ExampleTable>() {
      *   companion object {
      *     private const val VALUE = 0
-     *     val DEFINITION = TableDefinition.of(ExampleTable::class)
+     *     val DEFINITION = CreateTable.of(ExampleTable::class)
      *         .default(ExampleTable::value, VALUE)
      *         .build()
      *   }
@@ -113,38 +114,40 @@ class TableDefinition<T : TableColumns<T>> private constructor(
       // Must be optional
       if (!columnAsKParameter.isOptional) {
         throw LocalSqliteException(
-            "${columnsClass.simpleName}.${column.name} must be an optional parameter to allow " +
-                "default values.")
+            "${columnsClass.simpleName}.${column.name} must be an optional parameter to allow " + "default values.")
       }
 
       // Must not exist already
       defaults.putIfAbsent(columnAsKParameter, default)?.let {
         throw LocalSqliteException(
-            "${columnsClass.simpleName}.${column.name} already has the default value of '$it', " +
-                "cannot set it to '$default'")
+            "${columnsClass.simpleName}.${column.name} already has the default value of '$it', " + "cannot set it to '$default'")
       }
 
       return this
     }
 
-    /** Creates the [TableDefinition] from the current state of this [Builder]. */
-    fun build(): TableDefinition<T> {
+    /** Creates the [CreateTable] from the current state of this [Builder]. */
+    fun build(): CreateTable<T> {
       // Optional parameters must have a default defined.
       val optionalColumns = columnsClass.primaryConstructor!!.parameters.filter { it.isOptional }
       optionalColumns.forEach {
         if (!defaults.containsKey(it)) {
           throw LocalSqliteException(
-              "Optional parameter ${columnsClass.simpleName}.${it.name} must have its default " +
-                  "value passed into the table definition via #default.")
+              "Optional parameter ${columnsClass.simpleName}.${it.name} must have its default " + "value passed into the table definition via #default.")
         }
       }
 
-      return TableDefinition(columnsClass, withoutRowId, constraints, defaults, autoIncrementColumn)
+      return CreateTable(
+          columnsClass,
+          withoutRowId,
+          constraints,
+          defaults,
+          autoIncrementColumn)
     }
   }
 
   companion object {
-    /** Alias for creating new [TableDefinition.Builder]s. */
+    /** Alias for creating new [CreateTable.Builder]s. */
     fun <T : TableColumns<T>> of(columnsClass: KClass<T>): Builder<T> {
       return Builder(columnsClass)
     }
