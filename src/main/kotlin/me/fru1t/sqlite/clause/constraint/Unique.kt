@@ -66,7 +66,7 @@ data class Unique<T : TableColumns<T>>(
       flattenedColumnNames.append('`').append(column.getSqlName()).append('`')
     }}
     return SQL_CLAUSE.format(
-        getConstraintName(), flattenedColumnNames.toString(), onConflict.getSqlClause())
+        getConstraintName(), flattenedColumnNames.toString(), onConflict.getClause())
   }
 
   /**

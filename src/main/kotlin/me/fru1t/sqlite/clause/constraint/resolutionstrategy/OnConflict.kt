@@ -1,8 +1,8 @@
 package me.fru1t.sqlite.clause.constraint.resolutionstrategy
 
+import me.fru1t.sqlite.Clause
 import me.fru1t.sqlite.clause.constraint.Check
 import me.fru1t.sqlite.clause.constraint.ForeignKey
-import me.fru1t.sqlite.clause.constraint.PrimaryKey
 import me.fru1t.sqlite.clause.constraint.Unique
 
 /**
@@ -25,7 +25,7 @@ import me.fru1t.sqlite.clause.constraint.Unique
  *
  * This documentation is taken from [https://sqlite.org/lang_conflict.html].
  */
-enum class OnConflict(private val sqlName: String) {
+enum class OnConflict(private val sqlName: String) : Clause {
   /**
    * When an applicable constraint violation occurs, the [ROLLBACK] resolution algorithm aborts the
    * current SQL statement with an [SQLITE_CONSTRAINT][org.sqlite.SQLiteErrorCode.SQLITE_CONSTRAINT]
@@ -81,12 +81,15 @@ enum class OnConflict(private val sqlName: String) {
    */
   REPLACE("REPLACE");
 
-  /** Returns the SQL `ON CONFLICT` clause as a [String]. */
-  fun getSqlClause(): String{
+  /** Example: `ON CONFLICT ABORT`. */
+  override fun getClause(): String{
     return SQL_CLAUSE.format(sqlName)
   }
 
   companion object {
     private const val SQL_CLAUSE = "ON CONFLICT %s"
+
+    /** Alias of [OnConflict.ABORT]. */
+    val DEFAULT = OnConflict.ABORT
   }
 }

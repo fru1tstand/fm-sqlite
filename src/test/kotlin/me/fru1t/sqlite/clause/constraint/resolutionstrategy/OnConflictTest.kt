@@ -6,10 +6,10 @@ import org.junit.jupiter.api.Test
 class OnConflictTest {
   @Test
   fun getSqlClause() {
-    assertThat(OnConflict.ROLLBACK.getSqlClause()).isEqualTo("ON CONFLICT ROLLBACK")
-    assertThat(OnConflict.ABORT.getSqlClause()).isEqualTo("ON CONFLICT ABORT")
-    assertThat(OnConflict.FAIL.getSqlClause()).isEqualTo("ON CONFLICT FAIL")
-    assertThat(OnConflict.IGNORE.getSqlClause()).isEqualTo("ON CONFLICT IGNORE")
-    assertThat(OnConflict.REPLACE.getSqlClause()).isEqualTo("ON CONFLICT REPLACE")
+    assertThat(OnConflict.ROLLBACK.getClause()).isEqualTo("ON CONFLICT ROLLBACK")
+    assertThat(OnConflict.ABORT.getClause()).isEqualTo("ON CONFLICT ABORT")
+    assertThat(OnConflict.FAIL.getClause()).isEqualTo("ON CONFLICT FAIL")
+    assertThat(OnConflict.IGNORE.getClause()).isEqualTo("ON CONFLICT IGNORE")
+    assertThat(OnConflict.REPLACE.getClause()).isEqualTo("ON CONFLICT REPLACE")
   }
 }
