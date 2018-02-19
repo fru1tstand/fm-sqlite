@@ -4,7 +4,6 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
 
 class OnForeignKeyConflictTest {
-
   @Test
   fun getOnUpdateClause() {
     assertThat(OnForeignKeyConflict.RESTRICT.getOnUpdateClause()).isEqualTo("ON UPDATE RESTRICT")
@@ -23,5 +22,14 @@ class OnForeignKeyConflictTest {
     assertThat(OnForeignKeyConflict.SET_NULL.getOnDeleteClause()).isEqualTo("ON DELETE SET NULL")
     assertThat(OnForeignKeyConflict.SET_DEFAULT.getOnDeleteClause())
         .isEqualTo("ON DELETE SET DEFAULT")
+  }
+
+  @Test
+  fun getClause() {
+    assertThat(OnForeignKeyConflict.RESTRICT.getClause()).isEqualTo("RESTRICT")
+    assertThat(OnForeignKeyConflict.NO_ACTION.getClause()).isEqualTo("NO ACTION")
+    assertThat(OnForeignKeyConflict.CASCADE.getClause()).isEqualTo("CASCADE")
+    assertThat(OnForeignKeyConflict.SET_NULL.getClause()).isEqualTo("SET NULL")
+    assertThat(OnForeignKeyConflict.SET_DEFAULT.getClause()).isEqualTo("SET DEFAULT")
   }
 }

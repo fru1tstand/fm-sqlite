@@ -1,14 +1,15 @@
 package me.fru1t.sqlite.clause.resolutionstrategy
 
+import me.fru1t.sqlite.Clause
 import me.fru1t.sqlite.clause.constraint.ForeignKey
 
 /**
- * Specifies to the SQLite engine what should be done when a [ForeignKey] is `UPDATE`ed or
- * `DELETE`ed when that [ForeignKey] value exists on the independent (upstream) table.
+ * Specifies to the SQLite engine what should be done when a [ForeignKey] column is `UPDATE`ed or
+ * `DELETE`ed when the value exists on both the parent and child tables.
  *
- * This documentation is taken from [https://sqlite.org/foreignkeys.html#fk_actions].
+ * See [https://sqlite.org/foreignkeys.html#fk_actions] for official documentation.
  */
-enum class OnForeignKeyConflict(private val sqlName: String) {
+enum class OnForeignKeyConflict(private val sqlName: String): Clause {
   /**
    * The [RESTRICT] action means that the application is prohibited from deleting (for `ON DELETE
    * RESTRICT`) or modifying (for `ON UPDATE RESTRICT`) a parent key when there exists one or more
@@ -24,7 +25,9 @@ enum class OnForeignKeyConflict(private val sqlName: String) {
 
   /**
    * Configuring [NO_ACTION] means just that: when a parent key is modified or deleted from the
-   * database, no special action is taken. This is the SQLite default.
+   * database, no special action is taken.
+   *
+   * This is the Sqlite default.
    */
   NO_ACTION("NO ACTION"),
 
@@ -60,13 +63,14 @@ enum class OnForeignKeyConflict(private val sqlName: String) {
     val DEFAULT = OnForeignKeyConflict.NO_ACTION
   }
 
-  /** Returns the SQL `ON UPDATE` clause as a [String]. */
-  fun getOnUpdateClause(): String {
-    return ON_UPDATE_SQL_CLAUSE.format(sqlName)
-  }
+  /**
+   * Returns the SQL name of the foreign key conflict resolution strategy, for example: `CASCADE`.
+   */
+  override fun getClause(): String = sqlName
 
-  /** Returns the SQL `ON DELETE` clause as a [String]. */
-  fun getOnDeleteClause(): String {
-    return ON_DELETE_SQL_CLAUSE.format(sqlName)
-  }
+  /** Returns the SQL `ON UPDATE` clause, for example: `ON UPDATE CASCADE`. */
+  fun getOnUpdateClause(): String = ON_UPDATE_SQL_CLAUSE.format(sqlName)
+
+  /** Returns the SQL `ON DELETE` clause, for example: `ON DELETE CASCADE`. */
+  fun getOnDeleteClause(): String = ON_DELETE_SQL_CLAUSE.format(sqlName)
 }
