@@ -14,7 +14,7 @@ import kotlin.reflect.KProperty1
  * [OnForeignKeyConflict.DEFAULT]. See also [ForeignKey.onUpdate] and [ForeignKey.onDelete] to
  * specify on foreign key conflict values.
  *
- * See [ForeignKey] for example usage.
+ * Example usage: `ChildTable::b references ParentTable::a onUpdate NO_ACTION onDelete CASCADE`.
  */
 infix fun <L : TableColumns<L>, F : TableColumns<F>, T : Any> KProperty1<L, T>.references(
     referenceColumn: KProperty1<F, T>): ForeignKey<L, F, T> {
@@ -26,30 +26,11 @@ infix fun <L : TableColumns<L>, F : TableColumns<F>, T : Any> KProperty1<L, T>.r
 }
 
 /**
- * Represents a single [`FOREIGN KEY`][ForeignKey] constraint within a [Table]. Both child and
- * parent fields must be the same type [T]. Instances of this class are traditionally created with
- * [references]. For clarity, the [childColumn] is the local column, or the table that holds the
- * constraint. The [parentColumn] is the foreign column, or the table that is referenced.
+ * Represents a single column present on two tables constrained to match in value. The [childColumn]
+ * is dependent on the [parentColumn] and if an attempt is made to update or delete the
+ * [parentColumn], [onUpdate] or [onDelete] resolution strategy will take effect, respectively.
  *
- * Example usage:
- * ```
- * // Define the tables that will be used
- * data class ExampleUser(val id: Int) : TableColumns<ExampleUser>()
- * data class ExamplePost(val id: Int, val exampleUserId: Int) : TableColumns<ExamplePost>()
- *
- * // Example code block
- * fun main(args: Array<String>) {
- *   // One can use the inline variant of this method as such:
- *   val foreignKey =
- *     ExamplePost::exampleUserId references ExampleUser::id onUpdate RESTRICT onDelete RESTRICT
- *
- *   // Or more traditionally
- *   val foreignKey =
- *     ExamplePost::exampleUserId.references(ExampleUser::id).onUpdate(RESTRICT).onDelete(RESTRICT)
- * }
- * ```
- *
- * See [https://sqlite.org/foreignkeys.html] for official SQLite documentation of foreign keys.
+ * See [https://www.sqlite.org/foreignkeys.html] for official documentation.
  */
 data class ForeignKey<L : TableColumns<L>, F : TableColumns<F>, out T : Any>(
     val childColumn: KProperty1<L, T>,
