@@ -62,8 +62,9 @@ class CreateTableTest {
   fun builder_constraint() {
     val exampleConstraint =
       object : Constraint<CreateTableTestTable> {
-      override fun getClause(): String = ""
-    }
+        override fun getClause(): String = ""
+        override fun getConstraintName(): String? = null
+      }
     val result = builder.constraint(exampleConstraint).build()
     assertThat(result.constraints).containsExactly(exampleConstraint)
   }

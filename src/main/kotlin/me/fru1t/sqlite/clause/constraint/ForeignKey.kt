@@ -37,6 +37,11 @@ data class ForeignKey<L : TableColumns<L>, F : TableColumns<F>, out T : Any>(
     val parentColumn: KProperty1<F, T>,
     val onUpdate: OnForeignKeyConflict,
     val onDelete: OnForeignKeyConflict) : Constraint<L> {
+  companion object {
+    private const val CONSTRAINT_NAME = "fk_%s_%s_%s"
+    private const val SQL_CLAUSE =
+      "CONSTRAINT `%s` FOREIGN KEY (`%s`) REFERENCES `%s`(`%s`) %s %s"
+  }
 
   /**  An infix alias for this data class's [copy] method specifying an [onUpdate]. */
   infix fun onUpdate(onUpdate: OnForeignKeyConflict) = copy(onUpdate = onUpdate)
@@ -44,6 +49,16 @@ data class ForeignKey<L : TableColumns<L>, F : TableColumns<F>, out T : Any>(
   /** An infix alis for this data class's [copy] method specifying an [onDelete]. */
   infix fun onDelete(onDelete: OnForeignKeyConflict) = copy(onDelete = onDelete)
 
+  /** Returns the [KClass] of the child (local) table. */
+  fun getChildTable(): KClass<L> = childColumn.getTable()
+
+  /** Returns the [KClass] of the parent (referenced) table. */
+  fun getParentTable(): KClass<F> = parentColumn.getTable()
+
+  /**
+   * Example: ``CONSTRAINT `fk_table_parent_table_a` FOREIGN KEY (`b`) REFERENCES
+   * `parent_table`(`a`) ON UPDATE CASCADE ON DELETE RESTRICT``.
+   */
   override fun getClause(): String {
     return SQL_CLAUSE.format(
         getConstraintName(),
@@ -56,24 +71,13 @@ data class ForeignKey<L : TableColumns<L>, F : TableColumns<F>, out T : Any>(
 
   /**
    * Returns the proper name this [ForeignKey] should have within the database. This follows the
-   * format `fk_<local table name>_<other table name>_<other table's column name>`
+   * format `fk_<local table name>_<other table name>_<other table's column name>`.
+   * Example: `fk_child_table_parent_table_id`.
    */
-  fun getConstraintName(): String {
+  override fun getConstraintName(): String {
     return CONSTRAINT_NAME.format(
         childColumn.getTable().getSqlName(),
         parentColumn.getTable().getSqlName(),
         parentColumn.getSqlName())
-  }
-
-  /** Returns the [KClass] of the child (local) table. */
-  fun getChildTable(): KClass<L> = childColumn.getTable()
-
-  /** Returns the [KClass] of the parent (referenced) table. */
-  fun getParentTable(): KClass<F> = parentColumn.getTable()
-
-  companion object {
-    private const val CONSTRAINT_NAME = "fk_%s_%s_%s"
-    private const val SQL_CLAUSE =
-      "CONSTRAINT `%s` FOREIGN KEY (`%s`) REFERENCES `%s`(`%s`) %s %s"
   }
 }

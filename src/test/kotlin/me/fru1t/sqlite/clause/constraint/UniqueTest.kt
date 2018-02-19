@@ -46,7 +46,7 @@ class UniqueTest {
 
   @Test
   fun getConstraintName() {
-    assertThat(unique.getName()).isEqualTo("uq_a_b")
+    assertThat(unique.getConstraintName()).isEqualTo("uq_a_b")
   }
 }
 

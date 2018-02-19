@@ -44,4 +44,7 @@ data class PrimaryKey<T : TableColumns<T>>(
   /** Example: ``CONSTRAINT PRIMARY KEY(`id` DESC, `post_id`) ON CONFLICT ABORT``. */
   override fun getClause(): String =
     PRIMARY_KEY_CLAUSE.format(columnGroup.getClause()) + " " + onConflict.getClause()
+
+  /** This will always return `null`. */
+  override fun getConstraintName(): String? = null
 }

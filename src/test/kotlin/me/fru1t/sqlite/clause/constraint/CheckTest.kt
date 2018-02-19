@@ -48,7 +48,18 @@ class CheckTest {
     val result: Check<Table> = VALID_NAME checks VALID_CLAUSE
     assertThat(result.getClause()).isEqualTo("CONSTRAINT `$VALID_NAME` CHECK ($VALID_CLAUSE)")
   }
+
+  @Test
+  fun getConstraintName_validName() {
+    val result: Check<Table> = VALID_NAME checks VALID_CLAUSE
+    assertThat(result.getConstraintName()).isEqualTo(VALID_NAME)
+  }
+
+  @Test
+  fun getConstraintName_null() {
+    val result = Check<Table>(VALID_CLAUSE)
+    assertThat(result.getConstraintName()).isNull()
+  }
 }
 
 private data class Table(val foo: String, val bar: String) : TableColumns<Table>()
-

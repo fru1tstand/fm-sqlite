@@ -45,16 +45,11 @@ data class Unique<T : TableColumns<T>>(
 
   /** Example: ``CONSTRAINT `uq_a_b` UNIQUE (`a` ASC, `b` ASC) ON CONFLICT ROLLBACK``. */
   override fun getClause(): String {
-    return SQL_CLAUSE.format(getName(), columnGroup.getClause(), onConflict.getClause())
+    return SQL_CLAUSE.format(getConstraintName(), columnGroup.getClause(), onConflict.getClause())
   }
 
-  /**
-   * Returns the proper name this [Unique] constraint should have within the database. This follows
-   * the format `uq_<column names>`.
-   *
-   * Example: `uq_id_post_id`.
-   */
-  fun getName(): String {
+  /** Example: `uq_id_post_id`. */
+  override fun getConstraintName(): String {
     return CONSTRAINT_NAME.format(
         columnGroup.columns.joinToString(separator = "_", transform = { it.column.getSqlName() }))
   }

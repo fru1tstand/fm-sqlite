@@ -6,26 +6,29 @@ import me.fru1t.sqlite.clause.resolutionstrategy.OnForeignKeyConflict
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
+class ForeignKeyFileTest {
+  @Test
+  fun references() {
+    val result = FktChildTable::parentTableId references FktParentTable::id
+    assertThat(result.childColumn).isEqualTo(FktChildTable::parentTableId)
+    assertThat(result.parentColumn).isEqualTo(FktParentTable::id)
+    assertThat(result.onUpdate).isEqualTo(OnForeignKeyConflict.NO_ACTION)
+    assertThat(result.onDelete).isEqualTo(OnForeignKeyConflict.NO_ACTION)
+  }
+}
+
 class ForeignKeyTest {
-  private lateinit var foreignKey: ForeignKey<ChildTable, ParentTable, Int>
+  private lateinit var foreignKey:
+      ForeignKey<FktChildTable, FktParentTable, Int>
 
   @BeforeEach
   fun setUp() {
     foreignKey =
         ForeignKey(
-            ChildTable::parentTableId,
-            ParentTable::id,
+            FktChildTable::parentTableId,
+            FktParentTable::id,
             OnForeignKeyConflict.NO_ACTION,
             OnForeignKeyConflict.NO_ACTION)
-  }
-
-  @Test
-  fun references() {
-    val result = ChildTable::parentTableId references ParentTable::id
-    assertThat(result.childColumn).isEqualTo(ChildTable::parentTableId)
-    assertThat(result.parentColumn).isEqualTo(ParentTable::id)
-    assertThat(result.onUpdate).isEqualTo(OnForeignKeyConflict.NO_ACTION)
-    assertThat(result.onDelete).isEqualTo(OnForeignKeyConflict.NO_ACTION)
   }
 
   @Test
@@ -41,28 +44,30 @@ class ForeignKeyTest {
   }
 
   @Test
-  fun getConstraintClause() {
+  fun getChildTable() {
+    assertThat(foreignKey.getChildTable()).isEqualTo(FktChildTable::class)
+  }
+
+  @Test
+  fun getParentTable() {
+    assertThat(foreignKey.getParentTable()).isEqualTo(FktParentTable::class)
+  }
+
+  @Test
+  fun getClause() {
     assertThat(foreignKey.getClause())
-        .isEqualTo("CONSTRAINT `fk_child_table_parent_table_id` FOREIGN KEY " +
-            "(`parent_table_id`) REFERENCES `parent_table`(`id`) " +
+        .isEqualTo("CONSTRAINT `fk_fkt_child_table_fkt_parent_table_id` FOREIGN KEY " +
+            "(`parent_table_id`) REFERENCES `fkt_parent_table`(`id`) " +
             "ON UPDATE NO ACTION ON DELETE NO ACTION")
   }
 
   @Test
   fun getConstraintName() {
-    assertThat(foreignKey.getConstraintName()).isEqualTo("fk_child_table_parent_table_id")
-  }
-
-  @Test
-  fun getChildTable() {
-    assertThat(foreignKey.getChildTable()).isEqualTo(ChildTable::class)
-  }
-
-  @Test
-  fun getParentTable() {
-    assertThat(foreignKey.getParentTable()).isEqualTo(ParentTable::class)
+    assertThat(foreignKey.getConstraintName()).isEqualTo("fk_fkt_child_table_fkt_parent_table_id")
   }
 }
 
-private data class ParentTable(val id: Int) : TableColumns<ParentTable>()
-private data class ChildTable(val id: Int, val parentTableId: Int) : TableColumns<ChildTable>()
+private data class FktParentTable(
+    val id: Int) : TableColumns<FktParentTable>()
+private data class FktChildTable(
+    val id: Int, val parentTableId: Int) : TableColumns<FktChildTable>()

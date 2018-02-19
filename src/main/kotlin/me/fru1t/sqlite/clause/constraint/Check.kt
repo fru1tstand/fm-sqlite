@@ -61,10 +61,14 @@ data class Check<T : TableColumns<T>>(
     }
   }
 
+  /** Example: `CONSTRAINT CHECK (1 = 1)` or ``CONSTRAINT `ck_example` CHECK (1 = 1)``. */
   override fun getClause(): String {
     return when (name) {
       null -> UNNAMED_CHECK_CONSTRAINT.format(sqlLogicClause)
       else -> NAMED_CHECK_CONSTRAINT.format(name, sqlLogicClause)
     }
   }
+
+  /** Example: `ck_example` or `null`. */
+  override fun getConstraintName(): String? = name
 }

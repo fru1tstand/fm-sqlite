@@ -40,6 +40,12 @@ class PrimaryKeyTest {
     assertThat(primaryKey.getClause())
         .isEqualTo("CONSTRAINT PRIMARY KEY(`a` ASC, `b` DESC) ON CONFLICT ROLLBACK")
   }
+
+  @Test
+  fun getConstraintName() {
+    val primaryKey = PrimaryKey(PrimaryKeyTestTable::a and PrimaryKeyTestTable::b, ROLLBACK)
+    assertThat(primaryKey.getConstraintName()).isNull()
+  }
 }
 
 private data class PrimaryKeyTestTable(val a: Int, val b: Int) : TableColumns<PrimaryKeyTestTable>()
