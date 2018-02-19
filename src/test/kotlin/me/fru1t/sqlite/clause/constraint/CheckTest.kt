@@ -11,7 +11,7 @@ private const val VALID_CLAUSE = "0 = 0"
 class FileTest {
   @Test
   fun string_checks() {
-    val result: Check<Table> = VALID_NAME checks VALID_CLAUSE
+    val result: Check<CheckTestTable> = VALID_NAME checks VALID_CLAUSE
     assertThat(result.name).isEqualTo(VALID_NAME)
     assertThat(result.sqlLogicClause).isEqualTo(VALID_CLAUSE)
   }
@@ -21,7 +21,7 @@ class CheckTest {
   @Test
   fun init_invalidName() {
     try {
-      Check<Table>(VALID_CLAUSE, "#invalid name#")
+      Check<CheckTestTable>(VALID_CLAUSE, "#invalid name#")
     } catch (e: LocalSqliteException) {
       assertThat(e).hasMessageThat().contains("Invalid check constraint name")
       assertThat(e).hasMessageThat().contains("#invalid name#")
@@ -31,7 +31,7 @@ class CheckTest {
   @Test
   fun init_blankLogicClause() {
     try {
-      Check<Table>("\t    ", VALID_NAME)
+      Check<CheckTestTable>("\t    ", VALID_NAME)
     } catch (e: LocalSqliteException) {
       assertThat(e).hasMessageThat().contains("Cannot have blank check constraints")
     }
@@ -39,27 +39,27 @@ class CheckTest {
 
   @Test
   fun getClause_noName() {
-    val result = Check<Table>(VALID_CLAUSE)
+    val result = Check<CheckTestTable>(VALID_CLAUSE)
     assertThat(result.getClause()).isEqualTo("CONSTRAINT CHECK ($VALID_CLAUSE)")
   }
 
   @Test
   fun getClause_named() {
-    val result: Check<Table> = VALID_NAME checks VALID_CLAUSE
+    val result: Check<CheckTestTable> = VALID_NAME checks VALID_CLAUSE
     assertThat(result.getClause()).isEqualTo("CONSTRAINT `$VALID_NAME` CHECK ($VALID_CLAUSE)")
   }
 
   @Test
   fun getConstraintName_validName() {
-    val result: Check<Table> = VALID_NAME checks VALID_CLAUSE
+    val result: Check<CheckTestTable> = VALID_NAME checks VALID_CLAUSE
     assertThat(result.getConstraintName()).isEqualTo(VALID_NAME)
   }
 
   @Test
   fun getConstraintName_null() {
-    val result = Check<Table>(VALID_CLAUSE)
+    val result = Check<CheckTestTable>(VALID_CLAUSE)
     assertThat(result.getConstraintName()).isNull()
   }
 }
 
-private data class Table(val foo: String, val bar: String) : TableColumns<Table>()
+private data class CheckTestTable(val foo: String, val bar: String) : TableColumns<CheckTestTable>()
