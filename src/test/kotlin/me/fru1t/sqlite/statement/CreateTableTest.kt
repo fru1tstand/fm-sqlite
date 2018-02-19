@@ -4,10 +4,6 @@ import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.clause.Constraint
-import me.fru1t.sqlite.clause.Order
-import me.fru1t.sqlite.clause.constraint.PrimaryKey
-import me.fru1t.sqlite.clause.order
-import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -70,36 +66,6 @@ class CreateTableTest {
     }
     val result = builder.constraint(exampleConstraint).build()
     assertThat(result.constraints).containsExactly(exampleConstraint)
-  }
-
-  @Test
-  fun builder_primaryKey_primaryKey() {
-    val result =
-      builder.primaryKey(PrimaryKey(CreateTableTestTable::id, OnConflict.DEFAULT)).build()
-    assertThat(result.primaryKey)
-        .isEqualTo(PrimaryKey(CreateTableTestTable::id, OnConflict.DEFAULT))
-  }
-
-  @Test
-  fun builder_primaryKey_indexedColumnGroup() {
-    val result = builder.primaryKey(CreateTableTestTable::id order Order.DESC).build()
-    assertThat(result.primaryKey)
-        .isEqualTo(PrimaryKey(CreateTableTestTable::id order Order.DESC, OnConflict.DEFAULT))
-  }
-
-  @Test
-  fun builder_primaryKey_kProperty1() {
-    val result = builder.primaryKey(CreateTableTestTable::id).build()
-    assertThat(result.primaryKey)
-        .isEqualTo(PrimaryKey(CreateTableTestTable::id, OnConflict.DEFAULT))
-  }
-
-  @Test
-  fun builder_primaryKey() {
-    val primaryKey = PrimaryKey(CreateTableTestTable::id, OnConflict.FAIL)
-    builder.primaryKey = primaryKey
-    val result = builder.build()
-    assertThat(result.primaryKey).isEqualTo(primaryKey)
   }
 
   @Test

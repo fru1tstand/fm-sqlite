@@ -6,27 +6,40 @@ import me.fru1t.sqlite.clause.IndexedColumnGroup
 import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict
 import kotlin.reflect.KProperty1
 
-/** Creates a [PrimaryKey] with a column group, specifying [onConflict]. */
-infix fun <T : TableColumns<T>> IndexedColumnGroup<T>.onConflict(
-    onConflict: OnConflict): PrimaryKey<T> =
-  PrimaryKey(this, onConflict)
-
-/** Creates a [PrimaryKey] with a single column, specifying [onConflict]. */
-infix fun <T : TableColumns<T>> KProperty1<T, *>.onConflict(onConflict: OnConflict): PrimaryKey<T> =
-  PrimaryKey(IndexedColumnGroup(this), onConflict)
-
 /**
- * Represents the [`PRIMARY KEY`][PrimaryKey] constraint clause in an SQL `CREATE TABLE` statement.
+ * Represents a grouping of one or more columns by which the Sqlite engine will store as the "key"
+ * to a table row. More technically, this represents the `PRIMARY KEY` constraint on a
+ * `CREATE TABLE` statement. If one attempts to insert a row that matches another primary key, the
+ * [onConflict] resolution strategy is followed.
+ *
+ * See [https://www.sqlite.org/lang_createtable.html#constraints] for official documentation.
  */
 data class PrimaryKey<T : TableColumns<T>>(
     val columnGroup: IndexedColumnGroup<T>, val onConflict: OnConflict) : Constraint<T> {
   companion object {
     private const val PRIMARY_KEY_CLAUSE = "CONSTRAINT PRIMARY KEY%s"
+
+    /**
+     * Creates a [`PRIMARY KEY`][PrimaryKey] constraint from a [columnGroup] using the
+     * [default][OnConflict.DEFAULT] [OnConflict] resolution strategy.
+     *
+     * Example usage: `PrimaryKey from (Table::a and (Table::b order DESC))`.
+     */
+    infix fun <T : TableColumns<T>> from(columnGroup: IndexedColumnGroup<T>): PrimaryKey<T> =
+      PrimaryKey(columnGroup, OnConflict.DEFAULT)
+
+    /**
+     * Creates a [`PRIMARY KEY`][PrimaryKey] constraint from a single [column] using the
+     * [default][OnConflict.DEFAULT] [OnConflict] resolution strategy.
+     *
+     * Example usage: `PrimaryKey from Table::a`.
+     */
+    infix fun <T : TableColumns<T>> from(column: KProperty1<T, *>): PrimaryKey<T> =
+      PrimaryKey(IndexedColumnGroup(column), OnConflict.DEFAULT)
   }
 
-  /** Creates a [PrimaryKey] with only a single [column] resolving conflicts with [onConflict]. */
-  constructor(column: KProperty1<T, *>, onConflict: OnConflict) :
-      this(IndexedColumnGroup(column), onConflict)
+  /** Specifies the [onConflict] resolution strategy for this [Unique] constraint. */
+  infix fun onConflict(onConflict: OnConflict): PrimaryKey<T> = copy(onConflict = onConflict)
 
   /** Example: ``CONSTRAINT PRIMARY KEY(`id` DESC, `post_id`) ON CONFLICT ABORT``. */
   override fun getClause(): String =
