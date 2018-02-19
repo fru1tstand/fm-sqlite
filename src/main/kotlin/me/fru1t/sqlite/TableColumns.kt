@@ -41,8 +41,6 @@ fun <T : TableColumns<T>> KProperty1<T, *>.getTable() =
  * parameters within a kotlin data class constructor that extends this [TableColumns] class. Table
  * names are generated from the implementing [TableColumns] class by using the class name.
  *
- * To create a table definition, see [TableDefinition].
- *
  * Example usage:
  * ```
  * // Declares a table named "example_table"
