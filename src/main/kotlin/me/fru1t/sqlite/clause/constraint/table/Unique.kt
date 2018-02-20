@@ -1,8 +1,8 @@
-package me.fru1t.sqlite.clause.constraint
+package me.fru1t.sqlite.clause.constraint.table
 
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.clause.Constraint
 import me.fru1t.sqlite.clause.IndexedColumnGroup
+import me.fru1t.sqlite.clause.constraint.TableConstraint
 import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict
 import me.fru1t.sqlite.getSqlName
 import kotlin.reflect.KProperty1
@@ -16,7 +16,7 @@ import kotlin.reflect.KProperty1
  * See [https://www.sqlite.org/lang_createtable.html#constraints] for official documentation.
  */
 data class Unique<T : TableColumns<T>>(
-    val columnGroup: IndexedColumnGroup<T>, val onConflict: OnConflict) : Constraint<T> {
+    val columnGroup: IndexedColumnGroup<T>, val onConflict: OnConflict) : TableConstraint<T> {
   companion object {
     private const val SQL_CLAUSE = "CONSTRAINT `%s` UNIQUE %s %s"
     private const val CONSTRAINT_NAME = "uq_%s"

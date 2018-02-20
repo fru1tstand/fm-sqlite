@@ -1,7 +1,7 @@
 package me.fru1t.sqlite.clause.resolutionstrategy
 
 import me.fru1t.sqlite.Clause
-import me.fru1t.sqlite.clause.constraint.ForeignKey
+import me.fru1t.sqlite.clause.constraint.table.ForeignKey
 
 /**
  * Specifies to the SQLite engine what should be done when a [ForeignKey] column is `UPDATE`ed or

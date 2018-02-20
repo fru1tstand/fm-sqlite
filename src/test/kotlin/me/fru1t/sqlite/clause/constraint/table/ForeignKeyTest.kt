@@ -1,4 +1,4 @@
-package me.fru1t.sqlite.clause.constraint
+package me.fru1t.sqlite.clause.constraint.table
 
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.TableColumns
@@ -18,17 +18,15 @@ class ForeignKeyFileTest {
 }
 
 class ForeignKeyTest {
-  private lateinit var foreignKey:
-      ForeignKey<FktChildTable, FktParentTable, Int>
+  private lateinit var foreignKey: ForeignKey<FktChildTable, FktParentTable, Int>
 
   @BeforeEach
   fun setUp() {
-    foreignKey =
-        ForeignKey(
-            FktChildTable::parentTableId,
-            FktParentTable::id,
-            OnForeignKeyConflict.NO_ACTION,
-            OnForeignKeyConflict.NO_ACTION)
+    foreignKey = ForeignKey(
+        FktChildTable::parentTableId,
+        FktParentTable::id,
+        OnForeignKeyConflict.NO_ACTION,
+        OnForeignKeyConflict.NO_ACTION)
   }
 
   @Test

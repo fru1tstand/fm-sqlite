@@ -1,7 +1,7 @@
-package me.fru1t.sqlite.clause.constraint
+package me.fru1t.sqlite.clause.constraint.table
 
-import me.fru1t.sqlite.clause.Constraint
 import me.fru1t.sqlite.TableColumns
+import me.fru1t.sqlite.clause.constraint.TableConstraint
 import me.fru1t.sqlite.clause.resolutionstrategy.OnForeignKeyConflict
 import me.fru1t.sqlite.getSqlName
 import me.fru1t.sqlite.getTable
@@ -19,10 +19,7 @@ import kotlin.reflect.KProperty1
 infix fun <L : TableColumns<L>, F : TableColumns<F>, T : Any> KProperty1<L, T>.references(
     referenceColumn: KProperty1<F, T>): ForeignKey<L, F, T> {
   return ForeignKey(
-      this,
-      referenceColumn,
-      OnForeignKeyConflict.DEFAULT,
-      OnForeignKeyConflict.DEFAULT)
+      this, referenceColumn, OnForeignKeyConflict.DEFAULT, OnForeignKeyConflict.DEFAULT)
 }
 
 /**
@@ -36,7 +33,7 @@ data class ForeignKey<L : TableColumns<L>, F : TableColumns<F>, out T : Any>(
     val childColumn: KProperty1<L, T>,
     val parentColumn: KProperty1<F, T>,
     val onUpdate: OnForeignKeyConflict,
-    val onDelete: OnForeignKeyConflict) : Constraint<L> {
+    val onDelete: OnForeignKeyConflict) : TableConstraint<L> {
   companion object {
     private const val CONSTRAINT_NAME = "fk_%s_%s_%s"
     private const val SQL_CLAUSE =

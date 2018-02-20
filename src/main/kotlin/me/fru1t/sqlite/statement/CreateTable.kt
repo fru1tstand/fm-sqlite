@@ -2,11 +2,11 @@ package me.fru1t.sqlite.statement
 
 import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.clause.Constraint
-import me.fru1t.sqlite.clause.constraint.Check
-import me.fru1t.sqlite.clause.constraint.ForeignKey
-import me.fru1t.sqlite.clause.constraint.PrimaryKey
-import me.fru1t.sqlite.clause.constraint.Unique
+import me.fru1t.sqlite.clause.constraint.TableConstraint
+import me.fru1t.sqlite.clause.constraint.table.Check
+import me.fru1t.sqlite.clause.constraint.table.ForeignKey
+import me.fru1t.sqlite.clause.constraint.table.PrimaryKey
+import me.fru1t.sqlite.clause.constraint.table.Unique
 import me.fru1t.sqlite.getSqlName
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -21,7 +21,7 @@ import kotlin.reflect.full.primaryConstructor
 class CreateTable<T : TableColumns<T>> private constructor(
     val columnsClass: KClass<T>,
     val withoutRowId: Boolean,
-    val constraints: List<Constraint<T>>,
+    val constraints: List<TableConstraint<T>>,
     val defaults: Map<KProperty1<T, *>, Any>,
     val autoIncrementColumn: KProperty1<T, Int>?) {
   companion object {
@@ -77,7 +77,7 @@ class CreateTable<T : TableColumns<T>> private constructor(
       }
     }
 
-    private val constraints: MutableList<Constraint<T>> = ArrayList()
+    private val constraints: MutableList<TableConstraint<T>> = ArrayList()
     private val defaults: MutableMap<KProperty1<T, *>, Any> = HashMap()
     private var withoutRowId: Boolean = false
     private var autoIncrementColumn: KProperty1<T, Int>? = null
@@ -98,7 +98,7 @@ class CreateTable<T : TableColumns<T>> private constructor(
     }
 
     /**
-     * Add a single constraint to this [CreateTable.Builder].
+     * Add a table constraint to this [CreateTable.Builder].
      *
      * Code snippet for examples:
      * ```
@@ -127,7 +127,7 @@ class CreateTable<T : TableColumns<T>> private constructor(
      * builder.constraint("ck_greater_than_30" checks "`${Table::a.getSqlName()}` > 30")
      * ```
      */
-    fun constraint(constraint: Constraint<T>): Builder<T> {
+    fun constraint(constraint: TableConstraint<T>): Builder<T> {
       constraints.add(constraint)
       return this
     }

@@ -1,4 +1,4 @@
-package me.fru1t.sqlite.clause.constraint
+package me.fru1t.sqlite.clause.constraint.table
 
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.TableColumns
@@ -29,28 +29,37 @@ class PrimaryKeyTest {
   @Test
   fun onConflict() {
     val result =
-      PrimaryKey(IndexedColumnGroup(PrimaryKeyTestTable::a), OnConflict.DEFAULT) onConflict REPLACE
+      PrimaryKey(
+          IndexedColumnGroup(PrimaryKeyTestTable::a),
+          OnConflict.DEFAULT) onConflict REPLACE
     assertThat(result.onConflict).isEqualTo(REPLACE)
   }
 
   @Test
   fun getClause() {
     val primaryKey =
-      PrimaryKey(PrimaryKeyTestTable::a and (PrimaryKeyTestTable::b order DESC), ROLLBACK)
+      PrimaryKey(
+          PrimaryKeyTestTable::a and (PrimaryKeyTestTable::b order DESC),
+          ROLLBACK)
     assertThat(primaryKey.getClause())
         .isEqualTo("CONSTRAINT PRIMARY KEY(`a` ASC, `b` DESC) ON CONFLICT ROLLBACK")
   }
 
   @Test
   fun getConstraintName() {
-    val primaryKey = PrimaryKey(PrimaryKeyTestTable::a and PrimaryKeyTestTable::b, ROLLBACK)
+    val primaryKey =
+      PrimaryKey(
+          PrimaryKeyTestTable::a and PrimaryKeyTestTable::b,
+          ROLLBACK)
     assertThat(primaryKey.getConstraintName()).isNull()
   }
 
   @Test
   fun overrideToString() {
     val result =
-      PrimaryKey(PrimaryKeyTestTable::a and (PrimaryKeyTestTable::b order DESC), ROLLBACK)
+      PrimaryKey(
+          PrimaryKeyTestTable::a and (PrimaryKeyTestTable::b order DESC),
+          ROLLBACK)
           .toString()
     assertThat(result).contains("Primary Key")
     assertThat(result).contains("onConflict")

@@ -1,4 +1,4 @@
-package me.fru1t.sqlite.clause.constraint
+package me.fru1t.sqlite.clause.constraint.table
 
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.LocalSqliteException
@@ -31,7 +31,8 @@ class CheckTest {
   @Test
   fun init_blankLogicClause() {
     try {
-      Check<CheckTestTable>("\t    ", VALID_NAME)
+      Check<CheckTestTable>("\t    ",
+          VALID_NAME)
     } catch (e: LocalSqliteException) {
       assertThat(e).hasMessageThat().contains("Cannot have blank check constraints")
     }
@@ -40,13 +41,13 @@ class CheckTest {
   @Test
   fun getClause_noName() {
     val result = Check<CheckTestTable>(VALID_CLAUSE)
-    assertThat(result.getClause()).isEqualTo("CONSTRAINT CHECK ($VALID_CLAUSE)")
+    assertThat(result.getClause()).isEqualTo("CONSTRAINT CHECK (${VALID_CLAUSE})")
   }
 
   @Test
   fun getClause_named() {
     val result: Check<CheckTestTable> = VALID_NAME checks VALID_CLAUSE
-    assertThat(result.getClause()).isEqualTo("CONSTRAINT `$VALID_NAME` CHECK ($VALID_CLAUSE)")
+    assertThat(result.getClause()).isEqualTo("CONSTRAINT `${VALID_NAME}` CHECK (${VALID_CLAUSE})")
   }
 
   @Test
@@ -63,7 +64,8 @@ class CheckTest {
 
   @Test
   fun overrideToString() {
-    val result = VALID_NAME.checks<CheckTestTable>(VALID_CLAUSE).toString()
+    val result = VALID_NAME.checks<CheckTestTable>(
+        VALID_CLAUSE).toString()
     assertThat(result).contains("Check")
   }
 }

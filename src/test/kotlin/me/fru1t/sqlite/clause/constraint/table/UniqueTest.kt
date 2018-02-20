@@ -1,4 +1,4 @@
-package me.fru1t.sqlite.clause.constraint
+package me.fru1t.sqlite.clause.constraint.table
 
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.TableColumns

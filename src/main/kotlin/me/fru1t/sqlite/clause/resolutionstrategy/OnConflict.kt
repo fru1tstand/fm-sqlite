@@ -1,9 +1,9 @@
 package me.fru1t.sqlite.clause.resolutionstrategy
 
 import me.fru1t.sqlite.Clause
-import me.fru1t.sqlite.clause.constraint.Check
-import me.fru1t.sqlite.clause.constraint.ForeignKey
-import me.fru1t.sqlite.clause.constraint.Unique
+import me.fru1t.sqlite.clause.constraint.table.Check
+import me.fru1t.sqlite.clause.constraint.table.ForeignKey
+import me.fru1t.sqlite.clause.constraint.table.Unique
 
 /**
  * The [`ON CONFLICT`][OnConflict] clause is not a separate SQL command. It is a non-standard clause

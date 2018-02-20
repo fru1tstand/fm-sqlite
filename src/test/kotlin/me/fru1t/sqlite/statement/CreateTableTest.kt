@@ -3,12 +3,12 @@ package me.fru1t.sqlite.statement
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.clause.Constraint
 import me.fru1t.sqlite.clause.and
-import me.fru1t.sqlite.clause.constraint.PrimaryKey
-import me.fru1t.sqlite.clause.constraint.Unique
-import me.fru1t.sqlite.clause.constraint.checks
-import me.fru1t.sqlite.clause.constraint.references
+import me.fru1t.sqlite.clause.constraint.TableConstraint
+import me.fru1t.sqlite.clause.constraint.table.PrimaryKey
+import me.fru1t.sqlite.clause.constraint.table.Unique
+import me.fru1t.sqlite.clause.constraint.table.checks
+import me.fru1t.sqlite.clause.constraint.table.references
 import me.fru1t.sqlite.getSqlName
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
@@ -90,7 +90,7 @@ class CreateTableTest {
   @Test
   fun builder_constraint() {
     val exampleConstraint =
-      object : Constraint<CreateTableTestTable> {
+      object : TableConstraint<CreateTableTestTable> {
         override fun getClause(): String = ""
         override fun getConstraintName(): String? = null
       }

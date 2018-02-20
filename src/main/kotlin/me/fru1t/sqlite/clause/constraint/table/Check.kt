@@ -1,10 +1,10 @@
-package me.fru1t.sqlite.clause.constraint
+package me.fru1t.sqlite.clause.constraint.table
 
 import me.fru1t.sqlite.clause.DataType
 import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.Sqlite
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.clause.Constraint
+import me.fru1t.sqlite.clause.constraint.TableConstraint
 
 /**
  * Creates a named [Check] constraint with the name of the calling [String] with the sql logic of
@@ -14,7 +14,7 @@ infix fun <T : TableColumns<T>> String.checks(sqlLogicClause: String) =
   Check<T>(sqlLogicClause, this)
 
 /**
- * Declares a [`CHECK`][Check] [Constraint] on a [TableColumns] [T] [TableDefinition]. [Check]
+ * Declares a [`CHECK`][Check] [TableConstraint] on a [TableColumns] [T] [TableDefinition]. [Check]
  * constraints are added via [TableDefinition.Builder.constraint]. The optional [name] should be a
  * table-unique sqlite-compliant constraint name (alphanumeric and underscores), preferably starting
  * with `ck`. The [sqlLogicClause] should be a check constraint compliant logic clause.
@@ -44,7 +44,7 @@ infix fun <T : TableColumns<T>> String.checks(sqlLogicClause: String) =
  * constraint may not contain a subquery.
  */
 data class Check<T : TableColumns<T>>(
-    val sqlLogicClause: String, val name: String? = null) : Constraint<T> {
+    val sqlLogicClause: String, val name: String? = null) : TableConstraint<T> {
   companion object {
     private const val NAMED_CHECK_CONSTRAINT = "CONSTRAINT `%s` CHECK (%s)"
     private const val UNNAMED_CHECK_CONSTRAINT = "CONSTRAINT CHECK (%s)"
