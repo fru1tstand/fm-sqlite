@@ -7,31 +7,29 @@ import me.fru1t.sqlite.clause.Constraint
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import kotlin.reflect.full.findParameterByName
-import kotlin.reflect.full.primaryConstructor
 
 class CreateTableTest {
   private lateinit var builder: CreateTable.Builder<CreateTableTestTable>
 
   @BeforeEach
   fun setUp() {
-    builder = CreateTable.Builder(CreateTableTestTable::class).default(
-        CreateTableTestTable::default, CreateTableTestTable.DEFAULT)
+    builder = CreateTable.Builder(CreateTableTestTable::class)
   }
 
   @Test
-  fun of() {
-    val result = CreateTable.from(CreateTableTestTable::class)
+  fun from() {
+    val result = CreateTable.from(CreateTableTestTable::class).build()
     assertThat(result.columnsClass).isEqualTo(CreateTableTestTable::class)
   }
 
   @Test
   fun builder() {
     val result = builder.build()
-    assertThat(result.columnsClass).isEqualTo(CreateTableTestTable::class)
     assertThat(result.withoutRowId).isFalse()
+    assertThat(result.columnsClass).isEqualTo(CreateTableTestTable::class)
     assertThat(result.constraints).isEmpty()
-    assertThat(result.defaults).hasSize(1)
+    assertThat(result.defaults).isEmpty()
+    assertThat(result.autoIncrementColumn).isNull()
   }
 
   @Test
@@ -46,15 +44,21 @@ class CreateTableTest {
   }
 
   @Test
-  fun builder_withoutRowId_boolean() {
-    val result = builder.withoutRowId(true).build()
-    assertThat(result.withoutRowId).isTrue()
+  fun builder_declaredMemberProperty() {
+    try {
+      CreateTable.Builder(CreateTableTestTableWithMemberProperty::class)
+      fail<Unit>("Expecting LocalSqliteException for having a declared member property.")
+    } catch (e: LocalSqliteException) {
+      assertThat(e).hasMessageThat().contains("may not have declared member properties")
+      assertThat(e).hasMessageThat()
+          .contains(CreateTableTestTableWithMemberProperty::class.simpleName!!)
+      assertThat(e).hasMessageThat().contains(CreateTableTestTableWithMemberProperty::b.name)
+    }
   }
 
   @Test
-  fun builder_withoutRowId() {
-    builder.withoutRowId = true
-    val result = builder.build()
+  fun builder_withoutRowId_boolean() {
+    val result = builder.withoutRowId(true).build()
     assertThat(result.withoutRowId).isTrue()
   }
 
@@ -71,70 +75,41 @@ class CreateTableTest {
 
   @Test
   fun builder_default() {
-    val result = builder.build()
+    val result =
+      CreateTable.from(CreateTableTestTableWithDefault::class)
+          .default(CreateTableTestTableWithDefault::b, CreateTableTestTableWithDefault.DEFAULT)
+          .build()
     assertThat(result.defaults)
-        .containsEntry(
-            CreateTableTestTable::class.primaryConstructor!!.findParameterByName(
-                CreateTableTestTable::default.name),
-            CreateTableTestTable.DEFAULT)
+        .containsExactly(
+            CreateTableTestTableWithDefault::b,
+            CreateTableTestTableWithDefault.DEFAULT)
   }
 
   @Test
   fun builder_default_nonOptionalParameter() {
     try {
-      builder.default(CreateTableTestTable::id, 0)
+      builder.default(CreateTableTestTable::a, 0)
       fail<Unit>("Expected LocalSqliteException for defaulting a non-optional parameter")
     } catch (e: LocalSqliteException) {
-      assertThat(e).hasMessageThat().contains(CreateTableTestTable::id.name)
+      assertThat(e).hasMessageThat().contains(CreateTableTestTable::a.name)
       assertThat(e).hasMessageThat().contains(CreateTableTestTable::class.simpleName!!)
       assertThat(e).hasMessageThat().contains("must be an optional parameter")
     }
   }
 
   @Test
-  fun builder_default_duplicate() {
-    try {
-      builder.default(CreateTableTestTable::default, 0)
-      fail<Unit>("Expected LocalSqliteException for duplicate default")
-    } catch (e: LocalSqliteException) {
-      assertThat(e).hasMessageThat().contains(CreateTableTestTable::default.name)
-      assertThat(e).hasMessageThat().contains(CreateTableTestTable::class.simpleName!!)
-      assertThat(e).hasMessageThat().contains(CreateTableTestTable.DEFAULT.toString())
-      assertThat(e).hasMessageThat().contains(0.toString())
-      assertThat(e).hasMessageThat().contains("already has the default value from")
-    }
-  }
-
-  @Test
   fun builder_autoIncrement() {
-    val result = builder.autoIncrement(CreateTableTestTable::id).build()
-    assertThat(result.autoIncrementColumn)
-        .isEqualTo(
-            CreateTableTestTable::class.primaryConstructor!!.findParameterByName(
-                CreateTableTestTable::id.name))
-  }
-
-  @Test
-  fun builder_autoIncrement_exists() {
-    try {
-      builder.autoIncrement(CreateTableTestTable::id)
-          .autoIncrement(CreateTableTestTable::default)
-      fail<Unit>("Expected LocalSqliteException for existing auto increment column")
-    } catch (e: LocalSqliteException) {
-      assertThat(e).hasMessageThat().contains(CreateTableTestTable::id.name)
-      assertThat(e).hasMessageThat().contains(CreateTableTestTable::default.name)
-      assertThat(e).hasMessageThat().contains(CreateTableTestTable::class.simpleName!!)
-      assertThat(e).hasMessageThat().contains("already has an autoincrement column")
-    }
+    val result = builder.autoIncrement(CreateTableTestTable::a).build()
+    assertThat(result.autoIncrementColumn).isEqualTo(CreateTableTestTable::a)
   }
 
   @Test
   fun builder_build_noDefaultDefined() {
     try {
-      CreateTable.Builder(CreateTableTestTable::class).build()
+      CreateTable.Builder(CreateTableTestTableWithDefault::class).build()
       fail<Unit>("Expecting LocalSqliteException for no default for optional parameter")
     } catch (e: LocalSqliteException) {
-      assertThat(e).hasMessageThat().contains(CreateTableTestTable::default.name)
+      assertThat(e).hasMessageThat().contains(CreateTableTestTable::b.name)
       assertThat(e).hasMessageThat().contains(CreateTableTestTable::class.simpleName!!)
       assertThat(e).hasMessageThat().contains("must have its default value passed")
     }
@@ -142,10 +117,18 @@ class CreateTableTest {
 }
 
 private data class CreateTableTestTable(
-    val id: Int, val default: Int = DEFAULT) : TableColumns<CreateTableTestTable>() {
+    val a: Int, val b: Int) : TableColumns<CreateTableTestTable>()
+
+private data class CreateTableTestTableWithDefault(
+    val a: Int, val b: Int = DEFAULT) : TableColumns<CreateTableTestTableWithDefault>() {
   companion object {
     const val DEFAULT = 30
   }
+}
+
+private data class CreateTableTestTableWithMemberProperty(
+    val a: Int) : TableColumns<CreateTableTestTableWithMemberProperty>() {
+  val b: Int = 30
 }
 
 private class CreateTableTestInvalidTable : TableColumns<CreateTableTestInvalidTable>()

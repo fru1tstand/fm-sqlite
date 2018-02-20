@@ -8,57 +8,57 @@ import me.fru1t.sqlite.clause.constraint.ForeignKey
 import me.fru1t.sqlite.clause.constraint.PrimaryKey
 import me.fru1t.sqlite.clause.constraint.Unique
 import kotlin.reflect.KClass
-import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findParameterByName
 import kotlin.reflect.full.primaryConstructor
 
 /**
- * Represents an Sqlite table. This class is meant to hold the definition of a table in a database.
- *
- * Use [CreateTable.from] to create instances of the builder class.
+ * Represents the `CREATE TABLE` statement, containing all the data required for building the Sqlite
+ * query. Use [CreateTable.from] to start an instance of the builder.
  */
 class CreateTable<T : TableColumns<T>> private constructor(
     val columnsClass: KClass<T>,
     val withoutRowId: Boolean,
     val constraints: List<Constraint<T>>,
-    val defaults: Map<KParameter, Any>,
-    val autoIncrementColumn: KParameter?) {
+    val defaults: Map<KProperty1<T, *>, Any>,
+    val autoIncrementColumn: KProperty1<T, Int>?) {
   companion object {
-    /** Alias for creating new [CreateTable.Builder]s. */
-    fun <T : TableColumns<T>> from(columnsClass: KClass<T>): Builder<T> {
-      return Builder(columnsClass)
-    }
+    /** Alias for [Builder] that is more syntactically pleasing than CreateTable.Builder(...). */
+    fun <T : TableColumns<T>> from(columnsClass: KClass<T>): Builder<T> = Builder(columnsClass)
   }
 
   /**
-   * A builder class for [CreateTable] which verifies consistency on [build].
+   * A builder class for [CreateTable] which verifies consistency on [build]. The [columnsClass]
+   * must be a kotlin data class who's primary constructor's parameters represent the columns on
+   * the table. No other member properties (fields defined with `val`) may exist in the
+   * [columnsClass].
    *
-   * [columnsClass] must be a data class with a primary constructor that represents the table's
-   * columns. See [TableColumns] for details.
+   * @throws LocalSqliteException if [columnsClass] is not a data class
+   * @throws LocalSqliteException if [columnsClass] has other member properties
    */
-  class Builder<T : TableColumns<T>>(val columnsClass: KClass<T>) {
+  class Builder<T : TableColumns<T>>(private val columnsClass: KClass<T>) {
     init {
+      // Must be a data class
       if (!columnsClass.isData) {
         throw LocalSqliteException("${columnsClass.simpleName} must be a kotlin data class.")
       }
+
+      // Must be pure data class
+      val primaryConstructor = columnsClass.primaryConstructor!!
+      columnsClass.declaredMemberProperties.forEach {
+        if (primaryConstructor.findParameterByName(it.name) == null) {
+          throw LocalSqliteException(
+              "${columnsClass.simpleName} may not have declared member properties (ie. val) in " +
+                  "its class definition.\n\t\tFound: ${it.name}")
+        }
+      }
     }
 
-    /** Specifies if the `WITHOUT ROWID` clause is added to the `CREATE TABLE` statement. */
-    var withoutRowId: Boolean = false
-
-    /** Stores the constraints on the table such as `FOREIGN KEY`, `UNIQUE`, etc. */
-    var constraints: MutableList<Constraint<T>> = ArrayList()
-
-    /** Stores the column to mark as `AUTOINCREMENT`. */
-    private var autoIncrementColumn: KParameter? = null
-
-    /**
-     * Stores the default values associated to each column. If a column doesn't have an entry, no
-     * default will be defined in the `CREATE TABLE` statement. A default value must be explicitly
-     * passed for each column defined as optional within [columnsClass].
-     */
-    private val defaults: MutableMap<KParameter, Any> = HashMap()
+    private val constraints: MutableList<Constraint<T>> = ArrayList()
+    private val defaults: MutableMap<KProperty1<T, *>, Any> = HashMap()
+    private var withoutRowId: Boolean = false
+    private var autoIncrementColumn: KProperty1<T, Int>? = null
 
     /**
      * By default, every row in SQLite has a special column, usually called the "`rowid`", that
@@ -113,70 +113,65 @@ class CreateTable<T : TableColumns<T>> private constructor(
     /**
      * Sets a [column] to use `AUTOINCREMENT`. Please read
      * [the official documentation][http://www.sqlite.org/autoinc.html] before opting to use this.
-     * In most cases you don't need to, and instead, you can rely on the `ROWID` column.
-     *
-     * @throws LocalSqliteException if an [autoIncrementColumn] already exists for this [Builder]
+     * In most cases you don't need to, and instead, you can rely on the `ROWID` column. Only
+     * a single auto increment column may exist per table.
      */
     fun autoIncrement(column: KProperty1<T, Int>): Builder<T> {
-      if (autoIncrementColumn != null) {
-        throw LocalSqliteException(
-            "${columnsClass.simpleName} already has an autoincrement column " +
-                "'${autoIncrementColumn!!.name}', cannot set autoincrement on '${column.name}'")
-      }
-      autoIncrementColumn = columnsClass.primaryConstructor!!.findParameterByName(column.name)
+      autoIncrementColumn = column
       return this
     }
 
     /**
-     * Add a [`DEFAULT`][default] value to a [column]. This is required as it's impossible to
-     * introspectively resolve the default value for optional parameters in kotlin. The passed
-     * [column] must be optional and the [default] should be the same as the optional parameter
-     * or unexpected behavior will occur.
+     * Add a [default] value to a [column]. More technically, this adds the `DEFAULT '<value>'`
+     * clause to the column definition on the `CREATE TABLE` statement. If no default is given here,
+     * the `DEFAULT` clause is omitted.
+     *
+     * Columns passed into this method **must** be optional, and conversely, every optional
+     * parameter in [columnsClass] **must** have a default defined using this method. This is
+     * required as it's impossible to introspectively resolve the default value for optional
+     * parameters in kotlin.
      *
      * Example usage:
      * ```
-     * data class ExampleTable(val id: Int, val value: Int = VALUE) : TableColumns<ExampleTable>() {
-     *   companion object {
-     *     private const val VALUE = 0
-     *     val DEFINITION = CreateTable.of(ExampleTable::class)
-     *         .default(ExampleTable::value, VALUE)
-     *         .build()
-     *   }
-     * }
+     * private const val EXAMPLE = 0
+     * data class Table(val a: Int, val b: Int = EXAMPLE) : TableColumns<Table>()
+     * val createTable =
+     *   CreateTable.from(Table::class)
+     *       .default(Table::b, EXAMPLE)
+     *       .build()
      * ```
      *
      * @throws LocalSqliteException if [column] isn't an optional parameter
-     * @throws LocalSqliteException if [column] already has a default defined
      */
     fun <E : Any> default(column: KProperty1<T, E?>, default: E): Builder<T> {
-      val columnAsKParameter = columnsClass.primaryConstructor!!.findParameterByName(column.name)!!
-
       // Must be optional
-      if (!columnAsKParameter.isOptional) {
+      if (!columnsClass.primaryConstructor!!.findParameterByName(column.name)!!.isOptional) {
         throw LocalSqliteException(
             "${columnsClass.simpleName}.${column.name} must be an optional parameter to allow " +
                 "default values.")
       }
 
-      // Must not exist already
-      defaults.putIfAbsent(columnAsKParameter, default)?.let {
-        throw LocalSqliteException(
-            "${columnsClass.simpleName}.${column.name} already has the default value from '$it', " +
-                "cannot set it to '$default'")
-      }
-
+      defaults[column] = default
       return this
     }
 
-    /** Creates the [CreateTable] from the current state of this [Builder]. */
+    /**
+     * Creates the [CreateTable] from the current state of this [Builder].
+     *
+     * @throws LocalSqliteException if an optional parameter in [columnsClass] didn't have a
+     * [default] declared
+     */
     fun build(): CreateTable<T> {
       // Optional parameters must have a default defined.
       val optionalColumns = columnsClass.primaryConstructor!!.parameters.filter { it.isOptional }
       optionalColumns.forEach {
-        if (!defaults.containsKey(it)) {
-          throw LocalSqliteException(
-              "Optional parameter ${columnsClass.simpleName}.${it.name} must have its default " +
-                  "value passed into the table definition via #default.")
+        optionalColumn -> run {
+          if (!defaults.containsKey(
+                  columnsClass.declaredMemberProperties.find { it.name == optionalColumn.name })) {
+            throw LocalSqliteException(
+                "Optional parameter ${columnsClass.simpleName}.${optionalColumn.name} must have " +
+                    "its default value passed into the table definition via #default.")
+          }
         }
       }
 
