@@ -47,4 +47,7 @@ data class PrimaryKey<T : TableColumns<T>>(
 
   /** This will always return `null`. */
   override fun getConstraintName(): String? = null
+
+  override fun toString(): String =
+    "Primary Key on ${columnGroup.getClause()} onConflict=" + onConflict.sqlName
 }

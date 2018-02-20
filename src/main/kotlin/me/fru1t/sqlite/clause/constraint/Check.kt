@@ -71,4 +71,6 @@ data class Check<T : TableColumns<T>>(
 
   /** Example: `ck_example` or `null`. */
   override fun getConstraintName(): String? = name
+
+  override fun toString(): String = "Check '$sqlLogicClause'"
 }

@@ -65,6 +65,15 @@ class ForeignKeyTest {
   fun getConstraintName() {
     assertThat(foreignKey.getConstraintName()).isEqualTo("fk_fkt_child_table_fkt_parent_table_id")
   }
+
+  @Test
+  fun overrideToString() {
+    val result = foreignKey.toString()
+    assertThat(result).contains("Foreign Key")
+    assertThat(result).contains("references")
+    assertThat(result).contains("onUpdate")
+    assertThat(result).contains("onDelete")
+  }
 }
 
 private data class FktParentTable(

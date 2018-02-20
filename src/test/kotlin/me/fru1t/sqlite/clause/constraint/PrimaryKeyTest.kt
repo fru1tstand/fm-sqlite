@@ -46,6 +46,15 @@ class PrimaryKeyTest {
     val primaryKey = PrimaryKey(PrimaryKeyTestTable::a and PrimaryKeyTestTable::b, ROLLBACK)
     assertThat(primaryKey.getConstraintName()).isNull()
   }
+
+  @Test
+  fun overrideToString() {
+    val result =
+      PrimaryKey(PrimaryKeyTestTable::a and (PrimaryKeyTestTable::b order DESC), ROLLBACK)
+          .toString()
+    assertThat(result).contains("Primary Key")
+    assertThat(result).contains("onConflict")
+  }
 }
 
 private data class PrimaryKeyTestTable(val a: Int, val b: Int) : TableColumns<PrimaryKeyTestTable>()

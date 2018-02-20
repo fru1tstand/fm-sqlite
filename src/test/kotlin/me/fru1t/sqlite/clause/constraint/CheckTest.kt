@@ -60,6 +60,12 @@ class CheckTest {
     val result = Check<CheckTestTable>(VALID_CLAUSE)
     assertThat(result.getConstraintName()).isNull()
   }
+
+  @Test
+  fun overrideToString() {
+    val result = VALID_NAME.checks<CheckTestTable>(VALID_CLAUSE).toString()
+    assertThat(result).contains("Check")
+  }
 }
 
 private data class CheckTestTable(val foo: String, val bar: String) : TableColumns<CheckTestTable>()

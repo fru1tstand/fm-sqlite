@@ -25,7 +25,7 @@ import me.fru1t.sqlite.clause.constraint.Unique
  *
  * This documentation is taken from [https://sqlite.org/lang_conflict.html].
  */
-enum class OnConflict(private val sqlName: String) : Clause {
+enum class OnConflict(val sqlName: String) : Clause {
   /**
    * When an applicable constraint violation occurs, the [ROLLBACK] resolution algorithm aborts the
    * current SQL statement with an [SQLITE_CONSTRAINT][org.sqlite.SQLiteErrorCode.SQLITE_CONSTRAINT]

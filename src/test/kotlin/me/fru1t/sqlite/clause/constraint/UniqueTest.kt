@@ -48,6 +48,13 @@ class UniqueTest {
   fun getConstraintName() {
     assertThat(unique.getConstraintName()).isEqualTo("uq_a_b")
   }
+
+  @Test
+  fun overrideToString() {
+    val result = unique.toString()
+    assertThat(result).contains("Unique on")
+    assertThat(result).contains("onConflict")
+  }
 }
 
 private data class UniqueTestTable(val a: Int, val b: Int) : TableColumns<UniqueTestTable>()

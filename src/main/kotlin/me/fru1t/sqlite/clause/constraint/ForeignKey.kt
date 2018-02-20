@@ -80,4 +80,8 @@ data class ForeignKey<L : TableColumns<L>, F : TableColumns<F>, out T : Any>(
         parentColumn.getTable().getSqlName(),
         parentColumn.getSqlName())
   }
+
+  override fun toString(): String =
+    "Foreign Key (`${childColumn.getSqlName()}` references `${getParentTable().getSqlName()}`." +
+        "`${parentColumn.getSqlName()}`) onUpdate=${onUpdate.sqlName} onDelete=${onDelete.sqlName}"
 }

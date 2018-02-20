@@ -4,6 +4,12 @@ import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.clause.Constraint
+import me.fru1t.sqlite.clause.and
+import me.fru1t.sqlite.clause.constraint.PrimaryKey
+import me.fru1t.sqlite.clause.constraint.Unique
+import me.fru1t.sqlite.clause.constraint.checks
+import me.fru1t.sqlite.clause.constraint.references
+import me.fru1t.sqlite.getSqlName
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -14,6 +20,25 @@ class CreateTableTest {
   @BeforeEach
   fun setUp() {
     builder = CreateTable.Builder(CreateTableTestTable::class)
+  }
+
+  @Test
+  fun overrideToString() {
+    val result =
+      CreateTable.from(CreateTableTestTableWithDefault::class)
+          .withoutRowId(true)
+          .constraint(PrimaryKey from CreateTableTestTableWithDefault::a)
+          .constraint(
+              Unique from (
+                  CreateTableTestTableWithDefault::a and CreateTableTestTableWithDefault::b))
+          .constraint("ck_example" checks "1 = 1")
+          .constraint(CreateTableTestTableWithDefault::b references CreateTableTestTable::a)
+          .default(CreateTableTestTableWithDefault::b, CreateTableTestTableWithDefault.DEFAULT)
+          .autoIncrement(CreateTableTestTableWithDefault::a)
+          .build()
+          .toString()
+    assertThat(result).contains(CreateTableTestTableWithDefault::class.qualifiedName!!)
+    assertThat(result).contains(CreateTableTestTableWithDefault::class.getSqlName())
   }
 
   @Test

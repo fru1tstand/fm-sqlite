@@ -53,4 +53,7 @@ data class Unique<T : TableColumns<T>>(
     return CONSTRAINT_NAME.format(
         columnGroup.columns.joinToString(separator = "_", transform = { it.column.getSqlName() }))
   }
+
+  override fun toString(): String =
+    "Unique on ${columnGroup.getClause()} onConflict=" + onConflict.sqlName
 }

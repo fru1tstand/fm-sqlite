@@ -7,6 +7,7 @@ import me.fru1t.sqlite.clause.constraint.Check
 import me.fru1t.sqlite.clause.constraint.ForeignKey
 import me.fru1t.sqlite.clause.constraint.PrimaryKey
 import me.fru1t.sqlite.clause.constraint.Unique
+import me.fru1t.sqlite.getSqlName
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
@@ -27,6 +28,27 @@ class CreateTable<T : TableColumns<T>> private constructor(
     /** Alias for [Builder] that is more syntactically pleasing than CreateTable.Builder(...). */
     fun <T : TableColumns<T>> from(columnsClass: KClass<T>): Builder<T> = Builder(columnsClass)
   }
+
+  override fun toString(): String =
+      "CreateTable for ${columnsClass.qualifiedName}\n" +
+          "\t\tTable name: " + columnsClass.getSqlName() + "\n" +
+          "\t\tWithout RowID: " + withoutRowId.toString() + "\n" +
+          "\t\tAuto Increment Column: " + (autoIncrementColumn?.getSqlName() ?: "<none>") + "\n" +
+          "\t\tColumns: " + columnsClass.primaryConstructor!!.parameters.size +
+          columnsClass.declaredMemberProperties.joinToString(
+              separator = "\n\t\t\t\t",
+              prefix = "\n\t\t\t\t",
+              postfix = "\n",
+              transform = {
+                it.getSqlName() + " " + it.returnType +
+                    (defaults[it]?.let { " Default: '$it'" } ?: "")
+              }) +
+          "\t\tConstraints: " + constraints.size +
+          constraints.joinToString(
+              separator = "\n\t\t\t\t",
+              prefix = "\n\t\t\t\t",
+              postfix = "\n",
+              transform = { it.toString() })
 
   /**
    * A builder class for [CreateTable] which verifies consistency on [build]. The [columnsClass]

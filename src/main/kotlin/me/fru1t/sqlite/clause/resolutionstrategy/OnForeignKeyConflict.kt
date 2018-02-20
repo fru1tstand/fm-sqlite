@@ -9,7 +9,7 @@ import me.fru1t.sqlite.clause.constraint.ForeignKey
  *
  * See [https://sqlite.org/foreignkeys.html#fk_actions] for official documentation.
  */
-enum class OnForeignKeyConflict(private val sqlName: String): Clause {
+enum class OnForeignKeyConflict(val sqlName: String): Clause {
   /**
    * The [RESTRICT] action means that the application is prohibited from deleting (for `ON DELETE
    * RESTRICT`) or modifying (for `ON UPDATE RESTRICT`) a parent key when there exists one or more
