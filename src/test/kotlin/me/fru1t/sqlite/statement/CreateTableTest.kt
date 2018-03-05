@@ -28,9 +28,9 @@ class CreateTableTest {
     val result =
       CreateTable.from(CreateTableTestTableWithDefault::class)
           .withoutRowId(true)
-          .constraint(PrimaryKey from CreateTableTestTableWithDefault::a)
+          .constraint(PrimaryKey on CreateTableTestTableWithDefault::a)
           .constraint(
-              Unique from (
+              Unique on (
                   CreateTableTestTableWithDefault::a and CreateTableTestTableWithDefault::b))
           .constraint("ck_example" checks "1 = 1")
           .constraint(CreateTableTestTableWithDefault::b references CreateTableTestTable::a)

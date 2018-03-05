@@ -23,18 +23,18 @@ data class PrimaryKey<T : TableColumns>(
      * Creates a [`PRIMARY KEY`][PrimaryKey] constraint from a [columnGroup] using the
      * [default][OnConflict.DEFAULT] [OnConflict] resolution strategy.
      *
-     * Example usage: `PrimaryKey from (Table::a and (Table::b order DESC))`.
+     * Example usage: `PrimaryKey on (Table::a and (Table::b order DESC))`.
      */
-    infix fun <T : TableColumns> from(columnGroup: IndexedColumnGroup<T>): PrimaryKey<T> =
+    infix fun <T : TableColumns> on(columnGroup: IndexedColumnGroup<T>): PrimaryKey<T> =
       PrimaryKey(columnGroup, OnConflict.DEFAULT)
 
     /**
      * Creates a [`PRIMARY KEY`][PrimaryKey] constraint from a single [column] using the
      * [default][OnConflict.DEFAULT] [OnConflict] resolution strategy.
      *
-     * Example usage: `PrimaryKey from Table::a`.
+     * Example usage: `PrimaryKey on Table::a`.
      */
-    infix fun <T : TableColumns> from(column: KProperty1<T, *>): PrimaryKey<T> =
+    infix fun <T : TableColumns> on(column: KProperty1<T, *>): PrimaryKey<T> =
       PrimaryKey(
           IndexedColumnGroup(column),
           OnConflict.DEFAULT)

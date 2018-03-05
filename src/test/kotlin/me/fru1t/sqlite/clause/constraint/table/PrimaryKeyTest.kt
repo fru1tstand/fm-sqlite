@@ -14,14 +14,14 @@ import org.junit.jupiter.api.Test
 class PrimaryKeyTest {
   @Test
   fun from_indexedColumnGroup() {
-    val result = PrimaryKey from (PrimaryKeyTestTable::a and PrimaryKeyTestTable::b)
+    val result = PrimaryKey on (PrimaryKeyTestTable::a and PrimaryKeyTestTable::b)
     assertThat(result.columnGroup).isEqualTo(PrimaryKeyTestTable::a and PrimaryKeyTestTable::b)
     assertThat(result.onConflict).isEqualTo(OnConflict.DEFAULT)
   }
 
   @Test
   fun from_kProperty1() {
-    val result = PrimaryKey from PrimaryKeyTestTable::a
+    val result = PrimaryKey on PrimaryKeyTestTable::a
     assertThat(result.columnGroup).isEqualTo(IndexedColumnGroup(PrimaryKeyTestTable::a))
     assertThat(result.onConflict).isEqualTo(OnConflict.DEFAULT)
   }

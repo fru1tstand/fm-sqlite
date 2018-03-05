@@ -15,19 +15,19 @@ class UniqueTest {
 
   @BeforeEach
   fun setUp() {
-    unique = Unique from (UniqueTestTable::a and UniqueTestTable::b) onConflict ROLLBACK
+    unique = Unique on (UniqueTestTable::a and UniqueTestTable::b) onConflict ROLLBACK
   }
 
   @Test
   fun from_indexedColumnGroup() {
-    val result = Unique from (UniqueTestTable::a and UniqueTestTable::b)
+    val result = Unique on (UniqueTestTable::a and UniqueTestTable::b)
     assertThat(result.columnGroup).isEqualTo(UniqueTestTable::a and UniqueTestTable::b)
     assertThat(result.onConflict).isEqualTo(OnConflict.DEFAULT)
   }
 
   @Test
   fun from_kProperty1() {
-    val result = Unique from UniqueTestTable::a
+    val result = Unique on UniqueTestTable::a
     assertThat(result.columnGroup).isEqualTo(IndexedColumnGroup(UniqueTestTable::a))
     assertThat(result.onConflict).isEqualTo(OnConflict.DEFAULT)
   }

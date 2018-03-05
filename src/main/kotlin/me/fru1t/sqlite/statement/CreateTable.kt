@@ -110,9 +110,9 @@ class CreateTable<T : TableColumns> private constructor(
      *     // Foreign key constraint
      *     .constraint(Table::b references ParentTable::a onUpdate RESTRICT onDelete RESTRICT)
      *     // Unique constraint
-     *     .constraint(Unique from (Table::a and Table::b) onConflict ROLLBACK)
+     *     .constraint(Unique on (Table::a and Table::b) onConflict ROLLBACK)
      *     // Primary key constraint
-     *     .constraint(PrimaryKey from Table::a onConflict ABORT)
+     *     .constraint(PrimaryKey on Table::a onConflict ABORT)
      *     // Check constraint
      *     .constraint("ck_greater_than_30" checks "`${Table::a.getSqlName()}` > 30")
      * ```

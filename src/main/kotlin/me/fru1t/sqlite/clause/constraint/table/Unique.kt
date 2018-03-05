@@ -25,18 +25,18 @@ data class Unique<T : TableColumns>(
      * Creates a [`UNIQUE`][Unique] constraint from a [columnGroup] using the
      * [default][OnConflict.DEFAULT] [OnConflict] resolution strategy.
      *
-     * Example usage: `Unique from (Table::a and (Table::b order DESC))`.
+     * Example usage: `Unique on (Table::a and (Table::b order DESC))`.
      */
-    infix fun <T : TableColumns> from(columnGroup: IndexedColumnGroup<T>): Unique<T> =
+    infix fun <T : TableColumns> on(columnGroup: IndexedColumnGroup<T>): Unique<T> =
       Unique(columnGroup, OnConflict.DEFAULT)
 
     /**
      * Creates a [`UNIQUE`][Unique] constraint from a single [column] using the
      * [default][OnConflict.DEFAULT] [OnConflict] resolution strategy.
      *
-     * Example usage: `Unique from Table::a`.
+     * Example usage: `Unique on Table::a`.
      */
-    infix fun <T : TableColumns> from(column: KProperty1<T, *>): Unique<T> =
+    infix fun <T : TableColumns> on(column: KProperty1<T, *>): Unique<T> =
       Unique(IndexedColumnGroup(column), OnConflict.DEFAULT)
   }
 
