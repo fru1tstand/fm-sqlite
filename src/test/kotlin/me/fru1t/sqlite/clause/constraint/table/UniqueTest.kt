@@ -57,4 +57,4 @@ class UniqueTest {
   }
 }
 
-private data class UniqueTestTable(val a: Int, val b: Int) : TableColumns<UniqueTestTable>()
+private data class UniqueTestTable(val a: Int, val b: Int) : TableColumns()

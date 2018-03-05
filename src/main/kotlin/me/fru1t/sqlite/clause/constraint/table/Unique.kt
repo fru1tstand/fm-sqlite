@@ -15,7 +15,7 @@ import kotlin.reflect.KProperty1
  *
  * See [https://www.sqlite.org/lang_createtable.html#constraints] for official documentation.
  */
-data class Unique<T : TableColumns<T>>(
+data class Unique<T : TableColumns>(
     val columnGroup: IndexedColumnGroup<T>, val onConflict: OnConflict) : TableConstraint<T> {
   companion object {
     private const val SQL_CLAUSE = "CONSTRAINT `%s` UNIQUE %s %s"
@@ -27,7 +27,7 @@ data class Unique<T : TableColumns<T>>(
      *
      * Example usage: `Unique from (Table::a and (Table::b order DESC))`.
      */
-    infix fun <T : TableColumns<T>> from(columnGroup: IndexedColumnGroup<T>): Unique<T> =
+    infix fun <T : TableColumns> from(columnGroup: IndexedColumnGroup<T>): Unique<T> =
       Unique(columnGroup, OnConflict.DEFAULT)
 
     /**
@@ -36,7 +36,7 @@ data class Unique<T : TableColumns<T>>(
      *
      * Example usage: `Unique from Table::a`.
      */
-    infix fun <T : TableColumns<T>> from(column: KProperty1<T, *>): Unique<T> =
+    infix fun <T : TableColumns> from(column: KProperty1<T, *>): Unique<T> =
       Unique(IndexedColumnGroup(column), OnConflict.DEFAULT)
   }
 

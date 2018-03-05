@@ -22,18 +22,18 @@ private fun String.toSnakeCase(): String {
  * pascal case class name to snake case. For example, `ThisExampleTableName` will be converted to
  * `this_example_table_name`.
  */
-fun <T : TableColumns<T>> KClass<T>.getSqlName() = this.simpleName!!.toSnakeCase()
+fun <T : TableColumns> KClass<T>.getSqlName() = this.simpleName!!.toSnakeCase()
 
 /**
  * Returns the proper database name for a column as a [String] by converting the camel case
  * field name to snake case. For example, `thisExampleColumnName` will be converted to
  * `this_example_column_name`.
  */
-fun <T : TableColumns<T>> KProperty1<T, *>.getSqlName() = this.name.toSnakeCase()
+fun <T : TableColumns> KProperty1<T, *>.getSqlName() = this.name.toSnakeCase()
 
 /** Returns the [TableColumns] [KClass] that this column property belongs to. */
 @Suppress("UNCHECKED_CAST")
-fun <T : TableColumns<T>> KProperty1<T, *>.getTable() =
+fun <T : TableColumns> KProperty1<T, *>.getTable() =
   this.javaField!!.declaringClass.kotlin as KClass<T>
 
 /**
@@ -51,9 +51,7 @@ fun <T : TableColumns<T>> KProperty1<T, *>.getTable() =
  *   val bar: String? = "bar"                  // bar TEXT NULL DEFAULT 'bar'
  *                                             // Note: a ColumnConstraint defining a default must
  *                                             // be added for this column in the CreateTable class
- *   ) : TableColumns<ExampleTable>()
+ *   ) : TableColumns()
  * ```
- *
- * @param T Pass-through of the implementing class for generic methods in this class.
  */
-abstract class TableColumns<T : TableColumns<T>>
+abstract class TableColumns

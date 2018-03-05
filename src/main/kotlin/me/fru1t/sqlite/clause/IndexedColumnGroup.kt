@@ -11,7 +11,7 @@ import kotlin.reflect.KProperty1
  *
  * Example usage: `Table::a order ASC`.
  */
-infix fun <T : TableColumns<T>> KProperty1<T, *>.order(order: Order): IndexedColumnGroup<T> =
+infix fun <T : TableColumns> KProperty1<T, *>.order(order: Order): IndexedColumnGroup<T> =
   IndexedColumnGroup(listOf(IndexedColumn(this, order)))
 
 /**
@@ -20,18 +20,18 @@ infix fun <T : TableColumns<T>> KProperty1<T, *>.order(order: Order): IndexedCol
  *
  * Example usage: `Table::a and Table::b`.
  */
-infix fun <T : TableColumns<T>> KProperty1<T, *>.and(
+infix fun <T : TableColumns> KProperty1<T, *>.and(
     nextColumn: KProperty1<T, *>): IndexedColumnGroup<T> =
   IndexedColumnGroup(
       listOf(IndexedColumn(this, Order.DEFAULT), IndexedColumn(nextColumn, Order.DEFAULT)))
 
 /**
- * Creates an [IndexedColumnGroup] by prepending this column with settings the
+ * Creates an [IndexedColumnGroup] by pre-pending this column with settings the
  * [default][Order.DEFAULT] [Order] to the [existingGroup].
  *
  * Example usage: `Table::a and (Table::b order ASC)`.
  */
-infix fun <T : TableColumns<T>> KProperty1<T, *>.and(
+infix fun <T : TableColumns> KProperty1<T, *>.and(
     existingGroup: IndexedColumnGroup<T>): IndexedColumnGroup<T> =
   IndexedColumnGroup(
       listOf(IndexedColumn(this, Order.DEFAULT), *existingGroup.columns.toTypedArray()))
@@ -41,7 +41,7 @@ infix fun <T : TableColumns<T>> KProperty1<T, *>.and(
  * [`indexed-column`][https://www.sqlite.org/syntax/indexed-column.html], that is, a [column] and
  * an [order].
  */
-data class IndexedColumn<T : TableColumns<T>>(val column: KProperty1<T, *>, val order: Order) {
+data class IndexedColumn<T : TableColumns>(val column: KProperty1<T, *>, val order: Order) {
   /** Outputs the [column] sql name and [order] if available. Example: `` `foo` ASC ``. */
   override fun toString(): String = "`${column.getSqlName()}` ${order.getClause()}"
 }
@@ -54,7 +54,7 @@ data class IndexedColumn<T : TableColumns<T>>(val column: KProperty1<T, *>, val 
  *
  * @throws LocalSqliteException if no columns are given to the group
  */
-data class IndexedColumnGroup<T : TableColumns<T>>(val columns: List<IndexedColumn<T>>) : Clause {
+data class IndexedColumnGroup<T : TableColumns>(val columns: List<IndexedColumn<T>>) : Clause {
   /**
    * Creates an [IndexedColumnGroup] from an initial column with the [default][Order.DEFAULT]
    * [Order].

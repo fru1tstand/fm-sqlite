@@ -26,13 +26,10 @@ class TableColumnsTest {
   @Test
   fun constructor() {
     // Adds coverage for the abstract class constructor
-    object : TableColumns<TableColumnsTestTable>() { }
+    object : TableColumns() { }
   }
 }
 
-private data class LongTableNameClassForUseInTesting(val id: Int) :
-    TableColumns<LongTableNameClassForUseInTesting>()
-private data class LongColumnClass(val thisHasAReallyLongColumnName: String) :
-    TableColumns<LongColumnClass>()
-
-private data class TableColumnsTestTable(val id: Int) : TableColumns<TableColumnsTestTable>()
+private data class LongTableNameClassForUseInTesting(val id: Int) : TableColumns()
+private data class LongColumnClass(val thisHasAReallyLongColumnName: String) : TableColumns()
+private data class TableColumnsTestTable(val id: Int) : TableColumns()

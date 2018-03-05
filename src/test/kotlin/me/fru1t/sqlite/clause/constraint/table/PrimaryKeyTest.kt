@@ -66,4 +66,4 @@ class PrimaryKeyTest {
   }
 }
 
-private data class PrimaryKeyTestTable(val a: Int, val b: Int) : TableColumns<PrimaryKeyTestTable>()
+private data class PrimaryKeyTestTable(val a: Int, val b: Int) : TableColumns()

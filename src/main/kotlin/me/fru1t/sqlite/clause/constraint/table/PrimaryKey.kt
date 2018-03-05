@@ -14,7 +14,7 @@ import kotlin.reflect.KProperty1
  *
  * See [https://www.sqlite.org/lang_createtable.html#constraints] for official documentation.
  */
-data class PrimaryKey<T : TableColumns<T>>(
+data class PrimaryKey<T : TableColumns>(
     val columnGroup: IndexedColumnGroup<T>, val onConflict: OnConflict) : TableConstraint<T> {
   companion object {
     private const val PRIMARY_KEY_CLAUSE = "CONSTRAINT PRIMARY KEY%s"
@@ -25,7 +25,7 @@ data class PrimaryKey<T : TableColumns<T>>(
      *
      * Example usage: `PrimaryKey from (Table::a and (Table::b order DESC))`.
      */
-    infix fun <T : TableColumns<T>> from(columnGroup: IndexedColumnGroup<T>): PrimaryKey<T> =
+    infix fun <T : TableColumns> from(columnGroup: IndexedColumnGroup<T>): PrimaryKey<T> =
       PrimaryKey(columnGroup, OnConflict.DEFAULT)
 
     /**
@@ -34,7 +34,7 @@ data class PrimaryKey<T : TableColumns<T>>(
      *
      * Example usage: `PrimaryKey from Table::a`.
      */
-    infix fun <T : TableColumns<T>> from(column: KProperty1<T, *>): PrimaryKey<T> =
+    infix fun <T : TableColumns> from(column: KProperty1<T, *>): PrimaryKey<T> =
       PrimaryKey(
           IndexedColumnGroup(column),
           OnConflict.DEFAULT)

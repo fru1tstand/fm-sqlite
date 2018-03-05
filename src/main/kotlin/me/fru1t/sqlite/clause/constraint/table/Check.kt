@@ -12,7 +12,7 @@ import me.fru1t.sqlite.clause.constraint.TableConstraint
  * Example usage:
  * ``"ck_non_matching_columns" checks "`${Table::a.getSqlName()}` != `${Table::b.getSqlName()}`"``
  */
-infix fun <T : TableColumns<T>> String.checks(sqlLogicClause: String) =
+infix fun <T : TableColumns> String.checks(sqlLogicClause: String) =
   Check<T>(sqlLogicClause, this)
 
 /**
@@ -23,7 +23,7 @@ infix fun <T : TableColumns<T>> String.checks(sqlLogicClause: String) =
  *
  * See [https://www.sqlite.org/lang_createtable.html#constraints] for official documentation.
  */
-data class Check<T : TableColumns<T>>(
+data class Check<T : TableColumns>(
     val sqlLogicClause: String, val name: String? = null) : TableConstraint<T> {
   companion object {
     private const val NAMED_CHECK_CONSTRAINT = "CONSTRAINT `%s` CHECK (%s)"

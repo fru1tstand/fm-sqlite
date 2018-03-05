@@ -15,7 +15,7 @@ import kotlin.reflect.full.primaryConstructor
  * Represents the `CREATE TABLE` statement, containing all the data required for building the Sqlite
  * query. Use [CreateTable.from] to start an instance of the builder.
  */
-class CreateTable<T : TableColumns<T>> private constructor(
+class CreateTable<T : TableColumns> private constructor(
     val columnsClass: KClass<T>,
     val withoutRowId: Boolean,
     val constraints: List<TableConstraint<T>>,
@@ -23,7 +23,7 @@ class CreateTable<T : TableColumns<T>> private constructor(
     val autoIncrementColumn: KProperty1<T, Int>?) {
   companion object {
     /** Alias for [Builder] that is more syntactically pleasing than CreateTable.Builder(...). */
-    fun <T : TableColumns<T>> from(columnsClass: KClass<T>): Builder<T> = Builder(columnsClass)
+    fun <T : TableColumns> from(columnsClass: KClass<T>): Builder<T> = Builder(columnsClass)
   }
 
   override fun toString(): String =
@@ -61,7 +61,7 @@ class CreateTable<T : TableColumns<T>> private constructor(
    * @throws LocalSqliteException if [columnsClass] is not a data class
    * @throws LocalSqliteException if [columnsClass] has other member properties
    */
-  class Builder<T : TableColumns<T>>(private val columnsClass: KClass<T>) {
+  class Builder<T : TableColumns>(private val columnsClass: KClass<T>) {
     init {
       // Must be a data class
       if (!columnsClass.isData) {

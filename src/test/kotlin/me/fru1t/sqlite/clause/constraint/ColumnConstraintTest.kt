@@ -90,7 +90,4 @@ class ColumnConstraintTest {
 }
 
 private data class ColumnConstraintTestTable(
-    val a: Int,
-    val b: Int = 30,
-    val c: Int?,
-    val d: String = "`") : TableColumns<ColumnConstraintTestTable>()
+    val a: Int, val b: Int = 30, val c: Int?, val d: String = "`") : TableColumns()

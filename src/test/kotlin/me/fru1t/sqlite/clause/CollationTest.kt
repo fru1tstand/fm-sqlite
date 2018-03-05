@@ -10,4 +10,9 @@ class CollationTest {
     assertThat(Collation.RTRIM.getClause()).isEqualTo("COLLATE RTRIM")
     assertThat(Collation.NOCASE.getClause()).isEqualTo("COLLATE NOCASE")
   }
+
+  @Test
+  fun default() {
+    assertThat(Collation.DEFAULT).isEqualTo(Collation.BINARY)
+  }
 }

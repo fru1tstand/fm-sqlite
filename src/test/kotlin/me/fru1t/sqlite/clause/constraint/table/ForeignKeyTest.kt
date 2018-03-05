@@ -74,7 +74,5 @@ class ForeignKeyTest {
   }
 }
 
-private data class FktParentTable(
-    val id: Int) : TableColumns<FktParentTable>()
-private data class FktChildTable(
-    val id: Int, val parentTableId: Int) : TableColumns<FktChildTable>()
+private data class FktParentTable(val id: Int) : TableColumns()
+private data class FktChildTable(val id: Int, val parentTableId: Int) : TableColumns()

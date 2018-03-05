@@ -19,7 +19,7 @@ import kotlin.reflect.full.primaryConstructor
  * @throws LocalSqliteException if the [notNullOnConflict] is defined and the [KProperty1]
  * associated to the column is nullable
  */
-data class ColumnConstraint<T : TableColumns<T>, F>(
+data class ColumnConstraint<T : TableColumns, F>(
     val column: KProperty1<T, F>,
     val default: F?,
     val collation: Collation?,
@@ -34,7 +34,7 @@ data class ColumnConstraint<T : TableColumns<T>, F>(
      *
      * Example usage: `ColumnConstraint on Table::a default 30`.
      */
-    infix fun <T : TableColumns<T>, F> on(column: KProperty1<T, F>): ColumnConstraint<T, F> =
+    infix fun <T : TableColumns, F> on(column: KProperty1<T, F>): ColumnConstraint<T, F> =
         ColumnConstraint(column, null, null, null)
   }
 

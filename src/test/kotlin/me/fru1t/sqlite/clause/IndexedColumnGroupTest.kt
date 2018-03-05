@@ -105,4 +105,4 @@ class IndexedColumnGroupTest {
 }
 
 private data class IndexedColumnGroupTestTable(
-    val a: Int, val b: String, val c: String) : TableColumns<IndexedColumnGroupTestTable>()
+    val a: Int, val b: String, val c: String) : TableColumns()

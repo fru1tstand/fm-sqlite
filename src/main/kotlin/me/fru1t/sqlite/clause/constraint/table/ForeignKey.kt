@@ -16,7 +16,7 @@ import kotlin.reflect.KProperty1
  *
  * Example usage: `ChildTable::b references ParentTable::a onUpdate NO_ACTION onDelete CASCADE`.
  */
-infix fun <L : TableColumns<L>, F : TableColumns<F>, T : Any> KProperty1<L, T>.references(
+infix fun <L : TableColumns, F : TableColumns, T> KProperty1<L, T>.references(
     referenceColumn: KProperty1<F, T>): ForeignKey<L, F, T> {
   return ForeignKey(
       this, referenceColumn, OnForeignKeyConflict.DEFAULT, OnForeignKeyConflict.DEFAULT)
@@ -29,7 +29,7 @@ infix fun <L : TableColumns<L>, F : TableColumns<F>, T : Any> KProperty1<L, T>.r
  *
  * See [https://www.sqlite.org/foreignkeys.html] for official documentation.
  */
-data class ForeignKey<L : TableColumns<L>, F : TableColumns<F>, out T : Any>(
+data class ForeignKey<L : TableColumns, F : TableColumns, out T>(
     val childColumn: KProperty1<L, T>,
     val parentColumn: KProperty1<F, T>,
     val onUpdate: OnForeignKeyConflict,

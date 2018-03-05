@@ -138,19 +138,17 @@ class CreateTableTest {
   }
 }
 
-private data class CreateTableTestTable(
-    val a: Int, val b: Int) : TableColumns<CreateTableTestTable>()
+private data class CreateTableTestTable(val a: Int, val b: Int) : TableColumns()
 
 private data class CreateTableTestTableWithDefault(
-    val a: Int, val b: Int = DEFAULT) : TableColumns<CreateTableTestTableWithDefault>() {
+    val a: Int, val b: Int = DEFAULT) : TableColumns() {
   companion object {
     const val DEFAULT = 30
   }
 }
 
-private data class CreateTableTestTableWithMemberProperty(
-    val a: Int) : TableColumns<CreateTableTestTableWithMemberProperty>() {
+private data class CreateTableTestTableWithMemberProperty(val a: Int) : TableColumns() {
   val b: Int = 30
 }
 
-private class CreateTableTestInvalidTable : TableColumns<CreateTableTestInvalidTable>()
+private class CreateTableTestInvalidTable : TableColumns()

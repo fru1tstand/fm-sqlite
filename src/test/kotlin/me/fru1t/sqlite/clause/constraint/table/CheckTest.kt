@@ -3,6 +3,7 @@ package me.fru1t.sqlite.clause.constraint.table
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.TableColumns
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 
 private const val VALID_NAME = "ck_example"
@@ -22,6 +23,7 @@ class CheckTest {
   fun init_invalidName() {
     try {
       Check<CheckTestTable>(VALID_CLAUSE, "#invalid name#")
+      fail<Unit>("Expected LocalSqliteException about invalid check constraint name")
     } catch (e: LocalSqliteException) {
       assertThat(e).hasMessageThat().contains("Invalid check constraint name")
       assertThat(e).hasMessageThat().contains("#invalid name#")
@@ -31,8 +33,8 @@ class CheckTest {
   @Test
   fun init_blankLogicClause() {
     try {
-      Check<CheckTestTable>("\t    ",
-          VALID_NAME)
+      Check<CheckTestTable>("\t    ", VALID_NAME)
+      fail<Unit>("Expected LocalSqliteException about empty check constraint")
     } catch (e: LocalSqliteException) {
       assertThat(e).hasMessageThat().contains("Cannot have blank check constraints")
     }
@@ -47,7 +49,7 @@ class CheckTest {
   @Test
   fun getClause_named() {
     val result: Check<CheckTestTable> = VALID_NAME checks VALID_CLAUSE
-    assertThat(result.getClause()).isEqualTo("CONSTRAINT `${VALID_NAME}` CHECK (${VALID_CLAUSE})")
+    assertThat(result.getClause()).isEqualTo("CONSTRAINT `$VALID_NAME` CHECK ($VALID_CLAUSE)")
   }
 
   @Test
@@ -70,4 +72,4 @@ class CheckTest {
   }
 }
 
-private data class CheckTestTable(val foo: String, val bar: String) : TableColumns<CheckTestTable>()
+private data class CheckTestTable(val a: String, val b: String) : TableColumns()
