@@ -2,6 +2,7 @@ package me.fru1t.sqlite.statement
 
 import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.TableColumns
+import me.fru1t.sqlite.clause.constraint.ColumnConstraint
 import me.fru1t.sqlite.clause.constraint.TableConstraint
 import me.fru1t.sqlite.clause.constraint.table.Check
 import me.fru1t.sqlite.clause.constraint.table.ForeignKey
@@ -22,7 +23,7 @@ class CreateTable<T : TableColumns<T>> private constructor(
     val columnsClass: KClass<T>,
     val withoutRowId: Boolean,
     val constraints: List<TableConstraint<T>>,
-    val defaults: Map<KProperty1<T, *>, Any>,
+    val columnConstraints: Map<KProperty1<T, *>, ColumnConstraint<T, *>>,
     val autoIncrementColumn: KProperty1<T, Int>?) {
   companion object {
     /** Alias for [Builder] that is more syntactically pleasing than CreateTable.Builder(...). */
@@ -41,7 +42,12 @@ class CreateTable<T : TableColumns<T>> private constructor(
               postfix = "\n",
               transform = {
                 it.getSqlName() + " " + it.returnType +
-                    (defaults[it]?.let { " Default: '$it'" } ?: "")
+                    columnConstraints[it]?.let {
+                      (if (it.column.returnType.isMarkedNullable) "?" else "") +
+                          it.default?.let { "=<$it>" }.orEmpty() +
+                          it.collation?.let { " collation=" + it.sqlName }.orEmpty() +
+                          it.notNullOnConflict?.let { " notNullOnConflict=" + it.sqlName }.orEmpty()
+                    }.orEmpty()
               }) +
           "\t\tConstraints: " + constraints.size +
           constraints.joinToString(
@@ -78,7 +84,7 @@ class CreateTable<T : TableColumns<T>> private constructor(
     }
 
     private val constraints: MutableList<TableConstraint<T>> = ArrayList()
-    private val defaults: MutableMap<KProperty1<T, *>, Any> = HashMap()
+    private val columnConstraints: HashMap<KProperty1<T, *>, ColumnConstraint<T, *>> = HashMap()
     private var withoutRowId: Boolean = false
     private var autoIncrementColumn: KProperty1<T, Int>? = null
 
@@ -133,6 +139,21 @@ class CreateTable<T : TableColumns<T>> private constructor(
     }
 
     /**
+     * Adds a column constraint to this [CreateTable.Builder].
+     *
+     * Example usage:
+     * ```
+     * data class Table(val a: Int, val b: Int = 30) : TableColumns<Table>()
+     * val builder = CreateTable.from(Table::class)
+     *     .constraint(ColumnConstraint on Table::b default 30 notNullOnConflict OnConflict.ABORT)
+     * ```
+     */
+    fun constraint(columnConstraint: ColumnConstraint<T, *>): Builder<T> {
+      columnConstraints[columnConstraint.column] = columnConstraint
+      return this
+    }
+
+    /**
      * Sets a [column] to use `AUTOINCREMENT`. Please read
      * [the official documentation][http://www.sqlite.org/autoinc.html] before opting to use this.
      * In most cases you don't need to, and instead, you can rely on the `ROWID` column. Only
@@ -144,52 +165,18 @@ class CreateTable<T : TableColumns<T>> private constructor(
     }
 
     /**
-     * Add a [default] value to a [column]. More technically, this adds the `DEFAULT '<value>'`
-     * clause to the column definition on the `CREATE TABLE` statement. If no default is given here,
-     * the `DEFAULT` clause is omitted.
-     *
-     * Columns passed into this method **must** be optional, and conversely, every optional
-     * parameter in [columnsClass] **must** have a default defined using this method. This is
-     * required as it's impossible to introspectively resolve the default value for optional
-     * parameters in kotlin.
-     *
-     * Example usage:
-     * ```
-     * private const val EXAMPLE = 0
-     * data class Table(val a: Int, val b: Int = EXAMPLE) : TableColumns<Table>()
-     * val createTable =
-     *   CreateTable.from(Table::class)
-     *       .default(Table::b, EXAMPLE)
-     *       .build()
-     * ```
-     *
-     * @throws LocalSqliteException if [column] isn't an optional parameter
-     */
-    fun <E : Any> default(column: KProperty1<T, E?>, default: E): Builder<T> {
-      // Must be optional
-      if (!columnsClass.primaryConstructor!!.findParameterByName(column.name)!!.isOptional) {
-        throw LocalSqliteException(
-            "${columnsClass.simpleName}.${column.name} must be an optional parameter to allow " +
-                "default values.")
-      }
-
-      defaults[column] = default
-      return this
-    }
-
-    /**
      * Creates the [CreateTable] from the current state of this [Builder].
      *
-     * @throws LocalSqliteException if an optional parameter in [columnsClass] didn't have a
-     * [default] declared
+     * @throws LocalSqliteException if an optional parameter in [columnsClass] doesn't have a
+     * default passed via [ColumnConstraint]
      */
     fun build(): CreateTable<T> {
       // Optional parameters must have a default defined.
       val optionalColumns = columnsClass.primaryConstructor!!.parameters.filter { it.isOptional }
       optionalColumns.forEach {
         optionalColumn -> run {
-          if (!defaults.containsKey(
-                  columnsClass.declaredMemberProperties.find { it.name == optionalColumn.name })) {
+          val column = columnsClass.declaredMemberProperties.find { it.name == optionalColumn.name }
+          if (columnConstraints[column]?.default == null) {
             throw LocalSqliteException(
                 "Optional parameter ${columnsClass.simpleName}.${optionalColumn.name} must have " +
                     "its default value passed into the table definition via #default.")
@@ -201,7 +188,7 @@ class CreateTable<T : TableColumns<T>> private constructor(
           columnsClass = columnsClass,
           withoutRowId = withoutRowId,
           constraints = constraints,
-          defaults = defaults,
+          columnConstraints = columnConstraints,
           autoIncrementColumn = autoIncrementColumn)
     }
   }

@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.clause.and
+import me.fru1t.sqlite.clause.constraint.ColumnConstraint
 import me.fru1t.sqlite.clause.constraint.TableConstraint
 import me.fru1t.sqlite.clause.constraint.table.PrimaryKey
 import me.fru1t.sqlite.clause.constraint.table.Unique
@@ -33,7 +34,9 @@ class CreateTableTest {
                   CreateTableTestTableWithDefault::a and CreateTableTestTableWithDefault::b))
           .constraint("ck_example" checks "1 = 1")
           .constraint(CreateTableTestTableWithDefault::b references CreateTableTestTable::a)
-          .default(CreateTableTestTableWithDefault::b, CreateTableTestTableWithDefault.DEFAULT)
+          .constraint(
+              ColumnConstraint on CreateTableTestTableWithDefault::b
+                  default CreateTableTestTableWithDefault.DEFAULT)
           .autoIncrement(CreateTableTestTableWithDefault::a)
           .build()
           .toString()
@@ -53,7 +56,7 @@ class CreateTableTest {
     assertThat(result.withoutRowId).isFalse()
     assertThat(result.columnsClass).isEqualTo(CreateTableTestTable::class)
     assertThat(result.constraints).isEmpty()
-    assertThat(result.defaults).isEmpty()
+    assertThat(result.columnConstraints).isEmpty()
     assertThat(result.autoIncrementColumn).isNull()
   }
 
@@ -99,27 +102,21 @@ class CreateTableTest {
   }
 
   @Test
-  fun builder_default() {
+  fun builder_constraint_column() {
     val result =
       CreateTable.from(CreateTableTestTableWithDefault::class)
-          .default(CreateTableTestTableWithDefault::b, CreateTableTestTableWithDefault.DEFAULT)
+          .constraint(
+              ColumnConstraint on CreateTableTestTableWithDefault::b
+                  default CreateTableTestTableWithDefault.DEFAULT)
           .build()
-    assertThat(result.defaults)
+    assertThat(result.columnConstraints)
         .containsExactly(
             CreateTableTestTableWithDefault::b,
-            CreateTableTestTableWithDefault.DEFAULT)
-  }
-
-  @Test
-  fun builder_default_nonOptionalParameter() {
-    try {
-      builder.default(CreateTableTestTable::a, 0)
-      fail<Unit>("Expected LocalSqliteException for defaulting a non-optional parameter")
-    } catch (e: LocalSqliteException) {
-      assertThat(e).hasMessageThat().contains(CreateTableTestTable::a.name)
-      assertThat(e).hasMessageThat().contains(CreateTableTestTable::class.simpleName!!)
-      assertThat(e).hasMessageThat().contains("must be an optional parameter")
-    }
+            ColumnConstraint(
+                CreateTableTestTableWithDefault::b,
+                CreateTableTestTableWithDefault.DEFAULT,
+                null,
+                null))
   }
 
   @Test
