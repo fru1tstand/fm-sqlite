@@ -1,43 +1,21 @@
 package me.fru1t.sqlite.clause
 
 import com.google.common.truth.Truth.assertThat
-import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.clause.Order.DESC
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.clause.Order.ASC
-import org.junit.jupiter.api.Assertions.fail
-import org.junit.jupiter.api.BeforeEach
+import me.fru1t.sqlite.clause.Order.Companion.DEFAULT
 import org.junit.jupiter.api.Test
-
-class FileTest {
-  @Test
-  fun kProperty1_order() {
-    val result = IndexedColumnGroupTestTable::a order DESC
-    assertThat(result.columns).hasSize(1)
-    assertThat(result.columns[0].column).isEqualTo(IndexedColumnGroupTestTable::a)
-    assertThat(result.columns[0].order).isEqualTo(DESC)
-  }
-
-  @Test
-  fun kProperty1_and_kProperty1() {
-    val result = IndexedColumnGroupTestTable::a and IndexedColumnGroupTestTable::b
-    assertThat(result.columns)
-        .containsExactly(
-            IndexedColumn(IndexedColumnGroupTestTable::a, Order.DEFAULT),
-            IndexedColumn(IndexedColumnGroupTestTable::b, Order.DEFAULT))
-  }
-
-  @Test
-  fun kProperty1_and_indexedColumn() {
-    val result = IndexedColumnGroupTestTable::a and (IndexedColumnGroupTestTable::b order DESC)
-    assertThat(result.columns)
-        .containsExactly(
-            IndexedColumn(IndexedColumnGroupTestTable::a, Order.DEFAULT),
-            IndexedColumn(IndexedColumnGroupTestTable::b, DESC))
-  }
-}
+import kotlin.reflect.KProperty1
 
 class IndexedColumnTest {
+  @Test
+  fun indexedColumn() {
+    val result = IndexedColumn(IndexedColumnGroupTestTable::a, ASC)
+    assertThat(result.column).isEqualTo(IndexedColumnGroupTestTable::a)
+    assertThat(result.order).isEqualTo(ASC)
+  }
+
   @Test
   fun overrideToString() {
     val result = IndexedColumn(IndexedColumnGroupTestTable::a, DESC).toString()
@@ -46,63 +24,41 @@ class IndexedColumnTest {
 }
 
 class IndexedColumnGroupTest {
-  private lateinit var indexedColumnGroup: IndexedColumnGroup<IndexedColumnGroupTestTable>
-
-  @BeforeEach
-  fun setUp() {
-    indexedColumnGroup =
-        IndexedColumnGroup(
-            listOf(IndexedColumn(IndexedColumnGroupTestTable::a, Order.DEFAULT), IndexedColumn(
-                IndexedColumnGroupTestTable::b, ASC)))
-  }
-
   @Test
-  fun constructor_kProperty1() {
-    val result = IndexedColumnGroup(IndexedColumnGroupTestTable::a)
-    assertThat(result.columns)
-        .containsExactly(IndexedColumn(IndexedColumnGroupTestTable::a, Order.DEFAULT))
-  }
-
-  @Test
-  fun init_noColumns() {
-    try {
-      IndexedColumnGroup<IndexedColumnGroupTestTable>(emptyList())
-      fail<Unit>("Expected a LocalSqliteException about passing zero columns")
-    } catch (e: LocalSqliteException) {
-      assertThat(e).hasMessageThat().contains("cannot have zero columns")
-    }
+  fun constructor() {
+    val result = FakeIndexedColumnGroup(IndexedColumnGroupTestTable::a)
+    assertThat(result.columns())
+        .containsExactly(IndexedColumn(IndexedColumnGroupTestTable::a, DEFAULT))
   }
 
   @Test
   fun getClause() {
-    assertThat(indexedColumnGroup.getClause()).isEqualTo("(`a` ASC, `b` ASC)")
+    val indexedColumnGroup = (
+        FakeIndexedColumnGroup(IndexedColumnGroupTestTable::a) order ASC
+            and IndexedColumnGroupTestTable::b order DESC)
+    assertThat(indexedColumnGroup.getClause()).isEqualTo("(`a` ASC, `b` DESC)")
   }
 
   @Test
-  fun getClauseWithoutGrouping() {
-    assertThat(indexedColumnGroup.getClauseWithoutGrouping()).isEqualTo("`a` ASC, `b` ASC")
-  }
-
-  @Test
-  fun and_indexedColumnGroup() {
-    val result = indexedColumnGroup and (IndexedColumnGroupTestTable::c order DESC)
-    assertThat(result.columns)
+  fun and() {
+    val result =
+      FakeIndexedColumnGroup(IndexedColumnGroupTestTable::a) and IndexedColumnGroupTestTable::b
+    assertThat(result.columns())
         .containsExactly(
-            IndexedColumn(IndexedColumnGroupTestTable::a, Order.DEFAULT),
-            IndexedColumn(IndexedColumnGroupTestTable::b, ASC),
-            IndexedColumn(IndexedColumnGroupTestTable::c, DESC))
+            IndexedColumn(IndexedColumnGroupTestTable::a, DEFAULT),
+            IndexedColumn(IndexedColumnGroupTestTable::b, DEFAULT))
   }
 
   @Test
-  fun and_kProperty1() {
-    val result = indexedColumnGroup and IndexedColumnGroupTestTable::c
-    assertThat(result.columns)
-        .containsExactly(
-            IndexedColumn(IndexedColumnGroupTestTable::a, Order.DEFAULT),
-            IndexedColumn(IndexedColumnGroupTestTable::b, ASC),
-            IndexedColumn(IndexedColumnGroupTestTable::c, Order.DEFAULT))
+  fun order() {
+    val result = FakeIndexedColumnGroup(IndexedColumnGroupTestTable::a) order DESC
+    assertThat(result.columns())
+        .containsExactly(IndexedColumn(IndexedColumnGroupTestTable::a, DESC))
   }
 }
 
-private data class IndexedColumnGroupTestTable(
-    val a: Int, val b: String, val c: String) : TableColumns()
+private data class IndexedColumnGroupTestTable(val a: Int, val b: String) : TableColumns()
+
+private class FakeIndexedColumnGroup(
+    initialColumn: KProperty1<IndexedColumnGroupTestTable, *>) :
+    IndexedColumnGroup<IndexedColumnGroupTestTable, FakeIndexedColumnGroup>(initialColumn)

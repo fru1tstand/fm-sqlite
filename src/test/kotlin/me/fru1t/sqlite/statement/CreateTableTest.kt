@@ -3,7 +3,6 @@ package me.fru1t.sqlite.statement
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.clause.and
 import me.fru1t.sqlite.clause.constraint.ColumnConstraint
 import me.fru1t.sqlite.clause.constraint.TableConstraint
 import me.fru1t.sqlite.clause.constraint.table.PrimaryKey
@@ -30,8 +29,7 @@ class CreateTableTest {
           .withoutRowId(true)
           .constraint(PrimaryKey on CreateTableTestTableWithDefault::a)
           .constraint(
-              Unique on (
-                  CreateTableTestTableWithDefault::a and CreateTableTestTableWithDefault::b))
+              Unique on CreateTableTestTableWithDefault::a and CreateTableTestTableWithDefault::b)
           .constraint("ck_example" checks "1 = 1")
           .constraint(CreateTableTestTableWithDefault::b references CreateTableTestTable::a)
           .constraint(

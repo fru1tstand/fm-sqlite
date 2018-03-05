@@ -15,20 +15,12 @@ import kotlin.reflect.KProperty1
  *
  * See [https://www.sqlite.org/lang_createtable.html#constraints] for official documentation.
  */
-data class Unique<T : TableColumns>(
-    val columnGroup: IndexedColumnGroup<T>, val onConflict: OnConflict) : TableConstraint<T> {
+class Unique<T : TableColumns> private constructor(
+    initialColumn: KProperty1<T, *>) :
+    IndexedColumnGroup<T, Unique<T>>(initialColumn), TableConstraint<T> {
   companion object {
-    private const val SQL_CLAUSE = "CONSTRAINT `%s` UNIQUE %s %s"
+    private const val SQL_CLAUSE = "CONSTRAINT `%s` UNIQUE %s"
     private const val CONSTRAINT_NAME = "uq_%s"
-
-    /**
-     * Creates a [`UNIQUE`][Unique] constraint from a [columnGroup] using the
-     * [default][OnConflict.DEFAULT] [OnConflict] resolution strategy.
-     *
-     * Example usage: `Unique on (Table::a and (Table::b order DESC))`.
-     */
-    infix fun <T : TableColumns> on(columnGroup: IndexedColumnGroup<T>): Unique<T> =
-      Unique(columnGroup, OnConflict.DEFAULT)
 
     /**
      * Creates a [`UNIQUE`][Unique] constraint from a single [column] using the
@@ -36,24 +28,28 @@ data class Unique<T : TableColumns>(
      *
      * Example usage: `Unique on Table::a`.
      */
-    infix fun <T : TableColumns> on(column: KProperty1<T, *>): Unique<T> =
-      Unique(IndexedColumnGroup(column), OnConflict.DEFAULT)
+    infix fun <T : TableColumns> on(column: KProperty1<T, *>): Unique<T> = Unique(column)
   }
+
+  var onConflict: OnConflict? = null
+    private set
 
   /** Specifies the [onConflict] resolution strategy for this [Unique] constraint. */
-  infix fun onConflict(onConflict: OnConflict): Unique<T> = copy(onConflict = onConflict)
+  infix fun onConflict(onConflict: OnConflict): Unique<T> {
+    this.onConflict = onConflict
+    return this
+  }
 
   /** Example: ``CONSTRAINT `uq_a_b` UNIQUE (`a` ASC, `b` ASC) ON CONFLICT ROLLBACK``. */
-  override fun getClause(): String {
-    return SQL_CLAUSE.format(getConstraintName(), columnGroup.getClause(), onConflict.getClause())
-  }
+  override fun getClause(): String =
+    SQL_CLAUSE.format(getConstraintName(), super.getClause()) +
+        onConflict?.let { " ${it.getClause()}" }.orEmpty()
 
   /** Example: `uq_id_post_id`. */
-  override fun getConstraintName(): String {
-    return CONSTRAINT_NAME.format(
-        columnGroup.columns.joinToString(separator = "_", transform = { it.column.getSqlName() }))
-  }
+  override fun getConstraintName(): String =
+    CONSTRAINT_NAME.format(
+        columns().joinToString(separator = "_", transform = { it.column.getSqlName() }))
 
   override fun toString(): String =
-    "Unique on ${columnGroup.getClause()} onConflict=" + onConflict.sqlName
+    "Unique on ${super.getClause()}" + onConflict?.let { " onConflict=${it.sqlName}" }.orEmpty()
 }

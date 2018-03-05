@@ -2,11 +2,9 @@ package me.fru1t.sqlite.clause.constraint.table
 
 import com.google.common.truth.Truth.assertThat
 import me.fru1t.sqlite.TableColumns
-import me.fru1t.sqlite.clause.IndexedColumnGroup
-import me.fru1t.sqlite.clause.and
+import me.fru1t.sqlite.clause.IndexedColumn
+import me.fru1t.sqlite.clause.Order
 import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict
-import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict.FAIL
-import me.fru1t.sqlite.clause.resolutionstrategy.OnConflict.ROLLBACK
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -15,27 +13,20 @@ class UniqueTest {
 
   @BeforeEach
   fun setUp() {
-    unique = Unique on (UniqueTestTable::a and UniqueTestTable::b) onConflict ROLLBACK
+    unique = Unique on UniqueTestTable::a and UniqueTestTable::b onConflict OnConflict.ROLLBACK
   }
 
   @Test
-  fun from_indexedColumnGroup() {
-    val result = Unique on (UniqueTestTable::a and UniqueTestTable::b)
-    assertThat(result.columnGroup).isEqualTo(UniqueTestTable::a and UniqueTestTable::b)
-    assertThat(result.onConflict).isEqualTo(OnConflict.DEFAULT)
-  }
-
-  @Test
-  fun from_kProperty1() {
-    val result = Unique on UniqueTestTable::a
-    assertThat(result.columnGroup).isEqualTo(IndexedColumnGroup(UniqueTestTable::a))
-    assertThat(result.onConflict).isEqualTo(OnConflict.DEFAULT)
+  fun on() {
+    val result = PrimaryKey on UniqueTestTable::a
+    assertThat(result.columns())
+        .containsExactly(IndexedColumn(UniqueTestTable::a, Order.DEFAULT))
   }
 
   @Test
   fun onConflict() {
-    val result = unique onConflict FAIL
-    assertThat(result.onConflict).isEqualTo(FAIL)
+    val result = unique onConflict OnConflict.FAIL
+    assertThat(result.onConflict).isEqualTo(OnConflict.FAIL)
   }
 
   @Test

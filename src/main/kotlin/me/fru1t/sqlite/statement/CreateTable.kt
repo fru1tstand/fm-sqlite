@@ -110,9 +110,9 @@ class CreateTable<T : TableColumns> private constructor(
      *     // Foreign key constraint
      *     .constraint(Table::b references ParentTable::a onUpdate RESTRICT onDelete RESTRICT)
      *     // Unique constraint
-     *     .constraint(Unique on (Table::a and Table::b) onConflict ROLLBACK)
+     *     .constraint(Unique on Table::a and Table::b onConflict ROLLBACK)
      *     // Primary key constraint
-     *     .constraint(PrimaryKey on Table::a onConflict ABORT)
+     *     .constraint(PrimaryKey on Table::a order DESC onConflict ABORT)
      *     // Check constraint
      *     .constraint("ck_greater_than_30" checks "`${Table::a.getSqlName()}` > 30")
      * ```
@@ -129,7 +129,7 @@ class CreateTable<T : TableColumns> private constructor(
      * ```
      * data class Table(val a: Int, val b: Int = 30) : TableColumns<Table>()
      * val builder = CreateTable.from(Table::class)
-     *     .constraint(ColumnConstraint on Table::b default 30 notNullOnConflict OnConflict.ABORT)
+     *     .constraint(ColumnConstraint on Table::b default 30 notNullOnConflict ABORT)
      * ```
      */
     fun constraint(columnConstraint: ColumnConstraint<T, *>): Builder<T> {

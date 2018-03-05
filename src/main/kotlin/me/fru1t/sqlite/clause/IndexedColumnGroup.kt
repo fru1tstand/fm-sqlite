@@ -1,40 +1,9 @@
 package me.fru1t.sqlite.clause
 
 import me.fru1t.sqlite.Clause
-import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.getSqlName
 import kotlin.reflect.KProperty1
-
-/**
- * Creates an [IndexedColumnGroup] with a single column given in [order][Order].
- *
- * Example usage: `Table::a order ASC`.
- */
-infix fun <T : TableColumns> KProperty1<T, *>.order(order: Order): IndexedColumnGroup<T> =
-  IndexedColumnGroup(listOf(IndexedColumn(this, order)))
-
-/**
- * Creates an [IndexedColumnGroup] by appending the [nextColumn] to this column giving both the
- * [default][Order.DEFAULT] [Order].
- *
- * Example usage: `Table::a and Table::b`.
- */
-infix fun <T : TableColumns> KProperty1<T, *>.and(
-    nextColumn: KProperty1<T, *>): IndexedColumnGroup<T> =
-  IndexedColumnGroup(
-      listOf(IndexedColumn(this, Order.DEFAULT), IndexedColumn(nextColumn, Order.DEFAULT)))
-
-/**
- * Creates an [IndexedColumnGroup] by pre-pending this column with settings the
- * [default][Order.DEFAULT] [Order] to the [existingGroup].
- *
- * Example usage: `Table::a and (Table::b order ASC)`.
- */
-infix fun <T : TableColumns> KProperty1<T, *>.and(
-    existingGroup: IndexedColumnGroup<T>): IndexedColumnGroup<T> =
-  IndexedColumnGroup(
-      listOf(IndexedColumn(this, Order.DEFAULT), *existingGroup.columns.toTypedArray()))
 
 /**
  * A simple container class that represents a single
@@ -51,37 +20,40 @@ data class IndexedColumn<T : TableColumns>(val column: KProperty1<T, *>, val ord
  * clause. The base use case for these are the `UNIQUE` and `PRIMARY KEY` constraints, but may other
  * column-grouping applications. [IndexedColumnGroup.columns] will always contain at least one
  * column.
- *
- * @throws LocalSqliteException if no columns are given to the group
  */
-data class IndexedColumnGroup<T : TableColumns>(val columns: List<IndexedColumn<T>>) : Clause {
-  /**
-   * Creates an [IndexedColumnGroup] from an initial column with the [default][Order.DEFAULT]
-   * [Order].
-   */
-  constructor(initialColumn: KProperty1<T, *>) :
-      this(listOf(IndexedColumn(initialColumn, Order.DEFAULT)))
+open class IndexedColumnGroup<T : TableColumns, S : IndexedColumnGroup<T, S>>(
+    initialColumn: KProperty1<T, *>) : Clause {
+  private val columns = ArrayList<IndexedColumn<T>>()
 
   init {
-    if (columns.isEmpty()) {
-      throw LocalSqliteException("IndexedColumnGroup cannot have zero columns.")
-    }
+    and(initialColumn)
+  }
+
+  /** Retrieves all columns in this group. */
+  fun columns(): List<IndexedColumn<T>> = columns
+
+  /**
+   * Adds a [column] with [Order.DEFAULT] to the end of this [IndexedColumnGroup].
+   *
+   * Example usage: `Table::a and Table::b and Table::c`.
+   */
+  infix fun and(column: KProperty1<T, *>): S {
+    columns.add(IndexedColumn(column, Order.DEFAULT))
+    @Suppress("UNCHECKED_CAST")
+    return this as S
+  }
+
+  /**
+   * Sets the [Order] of the last [IndexedColumn] within this group.
+   *
+   * Example usage: `Table::a and Table::b order DESC`.
+   */
+  infix fun order(order: Order): S {
+    columns[columns.size - 1] = columns[columns.size - 1].copy(order = order)
+    @Suppress("UNCHECKED_CAST")
+    return this as S
   }
 
   /** Example: ``(`post_id` DESC, `name` ASC, `email` DESC)``. */
-  override fun getClause(): String = "(${getClauseWithoutGrouping()})"
-
-  /** Example: `` `post_id` DESC, `name` ASC, `email` DESC``. */
-  fun getClauseWithoutGrouping(): String = columns.joinToString()
-
-  /** Adds another [IndexedColumnGroup] to the end of this [IndexedColumnGroup]. */
-  infix fun and(indexedColumnGroup: IndexedColumnGroup<T>): IndexedColumnGroup<T> =
-    copy(columns = listOf(*columns.toTypedArray(), *indexedColumnGroup.columns.toTypedArray()))
-
-  /**
-   * Adds a [column] with the [default][Order.DEFAULT] [Order] to the end of this
-   * [IndexedColumnGroup].
-   */
-  infix fun and(column: KProperty1<T, *>): IndexedColumnGroup<T> =
-    copy(columns = listOf(*columns.toTypedArray(), IndexedColumn(column, Order.DEFAULT)))
+  override fun getClause(): String = "(${columns.joinToString()})"
 }
