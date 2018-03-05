@@ -3,6 +3,7 @@ package me.fru1t.sqlite.clause.resolutionstrategy
 import me.fru1t.sqlite.Clause
 import me.fru1t.sqlite.clause.constraint.table.Check
 import me.fru1t.sqlite.clause.constraint.table.ForeignKey
+import me.fru1t.sqlite.clause.constraint.table.PrimaryKey
 import me.fru1t.sqlite.clause.constraint.table.Unique
 
 /**

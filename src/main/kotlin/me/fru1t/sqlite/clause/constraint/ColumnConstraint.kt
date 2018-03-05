@@ -29,7 +29,11 @@ data class ColumnConstraint<T : TableColumns<T>, F>(
     private const val NOT_NULL_CLAUSE: String = "NOT NULL"
     private const val DEFAULT_CLAUSE: String = "DEFAULT `%s`"
 
-    /** Creates a default, all-null [ColumnConstraint] on [column]. */
+    /**
+     * Creates a default, all-null [ColumnConstraint] on [column].
+     *
+     * Example usage: `ColumnConstraint on Table::a default 30`.
+     */
     infix fun <T : TableColumns<T>, F> on(column: KProperty1<T, F>): ColumnConstraint<T, F> =
         ColumnConstraint(column, null, null, null)
   }

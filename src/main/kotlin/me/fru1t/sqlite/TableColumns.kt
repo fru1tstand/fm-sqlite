@@ -49,10 +49,9 @@ fun <T : TableColumns<T>> KProperty1<T, *>.getTable() =
  *   val defaultingColumn: String = "example", // defaulting_column TEXT NOT NULL DEFAULT 'example'
  *   val foo: String?,                         // foo TEXT NULL
  *   val bar: String? = "bar"                  // bar TEXT NULL DEFAULT 'bar'
- *                                             // Note: You MUST call
- *                                             // TableDefinition.Builder#default() on top of having
- *                                             // the optional parameter.
- *   ) : TableColumns<ExampleTable>
+ *                                             // Note: a ColumnConstraint defining a default must
+ *                                             // be added for this column in the CreateTable class
+ *   ) : TableColumns<ExampleTable>()
  * ```
  *
  * @param T Pass-through of the implementing class for generic methods in this class.

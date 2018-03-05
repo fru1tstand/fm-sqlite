@@ -1,6 +1,5 @@
 package me.fru1t.sqlite.clause.constraint.table
 
-import me.fru1t.sqlite.clause.DataType
 import me.fru1t.sqlite.LocalSqliteException
 import me.fru1t.sqlite.Sqlite
 import me.fru1t.sqlite.TableColumns
@@ -8,40 +7,21 @@ import me.fru1t.sqlite.clause.constraint.TableConstraint
 
 /**
  * Creates a named [Check] constraint with the name of the calling [String] with the sql logic of
- * the passed [String]. See [Check] for example usage.
+ * the passed [String].
+ *
+ * Example usage:
+ * ``"ck_non_matching_columns" checks "`${Table::a.getSqlName()}` != `${Table::b.getSqlName()}`"``
  */
 infix fun <T : TableColumns<T>> String.checks(sqlLogicClause: String) =
   Check<T>(sqlLogicClause, this)
 
 /**
- * Declares a [`CHECK`][Check] [TableConstraint] on a [TableColumns] [T] [TableDefinition]. [Check]
- * constraints are added via [TableDefinition.Builder.constraint]. The optional [name] should be a
- * table-unique sqlite-compliant constraint name (alphanumeric and underscores), preferably starting
- * with `ck`. The [sqlLogicClause] should be a check constraint compliant logic clause.
+ * Declares a [`CHECK`][Check] constraint for [TableColumns] [T]. [Check] constraints are executed
+ * every row modification (`INSERT` and `UPDATE`) on the modified row. The optional [name] should
+ * be a table-unique sqlite-compliant constraint name (alphanumeric and underscores), preferably
+ * starting with `ck`. The [sqlLogicClause] should be a check constraint compliant logic clause.
  *
- * Example usage:
- * ```
- * // Example table
- * data class Table(val foo: String, val bar: String) : TableColumns<Table>()
- *
- * // Creating a TableDefinition] with a check constraint.
- * val definition = TableDefinition.of(Table::class)
- *     .constraint(
- *         "ck_non_matching_columns" checks
- *             "`${Table::foo.getSqlName()}` != `${Table::bar.getSqlName()}`")
- * ```
- *
- *
- * Documentation from [https://www.sqlite.org/lang_createtable.html#constraints]:
- *
- * A [`CHECK`][Check] constraint may be attached to a column definition or specified as a table
- * constraint. In practice it makes no difference. Each time a new row is inserted into the table
- * or an existing row is updated, the expression associated with each [`CHECK`][Check] constraint
- * is evaluated and cast to a [`NUMERIC`][DataType.NUMERIC] value in the same way as a `CAST`
- * expression. If the result is zero (integer value `0` or real value `0.0`), then a constraint
- * violation has occurred. If the [`CHECK`][Check] expression evaluates to `NULL`, or any other
- * non-zero value, it is not a constraint violation. The expression of a [`CHECK`][Check]
- * constraint may not contain a subquery.
+ * See [https://www.sqlite.org/lang_createtable.html#constraints] for official documentation.
  */
 data class Check<T : TableColumns<T>>(
     val sqlLogicClause: String, val name: String? = null) : TableConstraint<T> {

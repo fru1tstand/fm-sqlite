@@ -6,13 +6,19 @@ import me.fru1t.sqlite.TableColumns
 import me.fru1t.sqlite.getSqlName
 import kotlin.reflect.KProperty1
 
-/** Creates an [IndexedColumnGroup] with a single column given in [order][Order]. */
+/**
+ * Creates an [IndexedColumnGroup] with a single column given in [order][Order].
+ *
+ * Example usage: `Table::a order ASC`.
+ */
 infix fun <T : TableColumns<T>> KProperty1<T, *>.order(order: Order): IndexedColumnGroup<T> =
   IndexedColumnGroup(listOf(IndexedColumn(this, order)))
 
 /**
  * Creates an [IndexedColumnGroup] by appending the [nextColumn] to this column giving both the
  * [default][Order.DEFAULT] [Order].
+ *
+ * Example usage: `Table::a and Table::b`.
  */
 infix fun <T : TableColumns<T>> KProperty1<T, *>.and(
     nextColumn: KProperty1<T, *>): IndexedColumnGroup<T> =
@@ -22,6 +28,8 @@ infix fun <T : TableColumns<T>> KProperty1<T, *>.and(
 /**
  * Creates an [IndexedColumnGroup] by prepending this column with settings the
  * [default][Order.DEFAULT] [Order] to the [existingGroup].
+ *
+ * Example usage: `Table::a and (Table::b order ASC)`.
  */
 infix fun <T : TableColumns<T>> KProperty1<T, *>.and(
     existingGroup: IndexedColumnGroup<T>): IndexedColumnGroup<T> =
